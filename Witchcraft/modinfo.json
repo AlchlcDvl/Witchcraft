@@ -1,0 +1,49 @@
+{
+  "HarmonyId": "alchlcdvl.witchcraft",
+  "DisplayName": "Witchcraft",
+  "Authors": [ "AlchlcDvl" ],
+  "Description": "A modding tool for developers!",
+  "Version": "1.0.0",
+  "Settings":
+  {
+    "CheckboxSettings":
+    [
+      {
+        "Name": "Enable Logging",
+        "Description": "Enables or disables the logging console",
+        "DefaultValue": false,
+        "AvailableInGame": false
+      },
+      {
+        "Name": "Enable Fatal Logging",
+        "Description": "Enables or disables the logging of Fatal level messages",
+        "DefaultValue": true,
+        "AvailableInGame": true
+      },
+      {
+        "Name": "Enable Critical Logging",
+        "Description": "Enables or disables the logging of Critical level messages",
+        "DefaultValue": true,
+        "AvailableInGame": true
+      },
+      {
+        "Name": "Enable Error Logging",
+        "Description": "Enables or disables the logging of Error level messages",
+        "DefaultValue": true,
+        "AvailableInGame": true
+      },
+      {
+        "Name": "Enable Warning Logging",
+        "Description": "Enables or disables the logging of Warning level messages",
+        "DefaultValue": true,
+        "AvailableInGame": true
+      },
+      {
+        "Name": "Enable Info Logging",
+        "Description": "Enables or disables the logging of Info level messages",
+        "DefaultValue": true,
+        "AvailableInGame": true
+      }
+    ]
+  }
+}
