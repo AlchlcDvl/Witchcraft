@@ -1,0 +1,1 @@
+Modding API for Town Of Salem 2. (Still a WIP)
