@@ -2,19 +2,76 @@ namespace Witchcraft.Extensions;
 
 public static class EnumerableExtentions
 {
-    public static void ForEach<TSource>(this IEnumerable<TSource> source, Action<TSource> action)
+    public static void ForEach<TSource>(this IEnumerable<TSource> source, Action<TSource> action) => source.ToList().ForEach(action);
+
+    public static TValue GetOrCompute<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, Func<TValue> supplier) where TKey : notnull
     {
-        if (source == null)
-            throw new ArgumentNullException(nameof(source));
+        if (!dictionary.ContainsKey(key))
+            return dictionary[key] = supplier();
 
-        if (action == null)
-            throw new ArgumentNullException(nameof(action));
+        return dictionary[key];
+    }
 
-        var enumerator = source.GetEnumerator();
+    public static void Shuffle<T>(this List<T> list)
+    {
+        if (list.Count is 1 or 0)
+            return;
 
-        while (enumerator.MoveNext())
-            action(enumerator.Current);
+        for (var i = list.Count - 1; i > 0; --i)
+        {
+            var r = URandom.Range(0, i + 1);
+            (list[r], list[i]) = (list[i], list[r]);
+        }
+    }
 
-        enumerator.Dispose();
+    public static T TakeFirst<T>(this List<T> list)
+    {
+        try
+        {
+            var item = list[0];
+            list.RemoveAt(0);
+            return item;
+        }
+        catch
+        {
+            return default;
+        }
+    }
+
+    public static void RemoveRange<T>(this List<T> list, IEnumerable<T> list2)
+    {
+        foreach (var item in list2)
+        {
+            if (list.Contains(item))
+                list.Remove(item);
+        }
+    }
+
+    public static void AddRanges<T>(this List<T> main, params IEnumerable<T>[] items) => items.ForEach(main.AddRange);
+
+    public static void RemoveRanges<T>(this List<T> main, params IEnumerable<T>[] items) => items.ForEach(main.RemoveRange);
+
+    public static bool Replace<T>(this List<T> list, T item1, T item2)
+    {
+        var contains = list.Contains(item1);
+
+        if (contains)
+        {
+            var index = list.IndexOf(item1);
+            list.Remove(item1);
+            list.Insert(index, item2);
+        }
+
+        return contains;
+    }
+
+    public static T Random<T>(this List<T> list, T defaultVal = default)
+    {
+        if (list.Count == 0)
+            return defaultVal;
+        else if (list.Count == 1)
+            return list[0];
+        else
+            return list[URandom.RandomRangeInt(0, list.Count)];
     }
 }

@@ -1,6 +1,3 @@
-using BepInEx.Configuration;
-using BepInEx.Logging;
-
 namespace Witchcraft.Logging.Unix;
 
 internal class LinuxConsoleDriver : IConsoleDriver
@@ -56,9 +53,7 @@ internal class LinuxConsoleDriver : IConsoleDriver
         {
             // Handle TTY ourselves
 
-            var writer = new StreamWriter(duplicateStream, Console.Out.Encoding);
-
-            writer.AutoFlush = true;
+            var writer = new StreamWriter(duplicateStream, Console.Out.Encoding) { AutoFlush = true };
 
             StandardOut = TextWriter.Synchronized(writer);
 
@@ -68,11 +63,9 @@ internal class LinuxConsoleDriver : IConsoleDriver
         ConsoleOut = StandardOut;
     }
 
-    public void CreateConsole(uint codepage) =>
-        Logger.Log(LogLevel.Warning, "An external console currently cannot be spawned on a Unix platform.");
+    public void CreateConsole(uint codepage) => Logger.LogWarning("An external console currently cannot be spawned on a Unix platform.");
 
-    public void DetachConsole() =>
-        throw new PlatformNotSupportedException("Cannot detach console on a Unix platform");
+    public void DetachConsole() => throw new PlatformNotSupportedException("Cannot detach console on a Unix platform");
 
     public void SetConsoleColor(ConsoleColor color)
     {

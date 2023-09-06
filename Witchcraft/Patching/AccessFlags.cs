@@ -1,4 +1,3 @@
-using System.Reflection;
 using static System.Reflection.BindingFlags;
 
 namespace Witchcraft.Patching;

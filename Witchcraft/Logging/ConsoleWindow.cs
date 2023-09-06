@@ -3,11 +3,9 @@
 // Copyright (c) Usagirei 2015 - 2015
 // --------------------------------------------------
 
-using System;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
-using BepInEx;
-using BepInEx.ConsoleUtil;
+using Witchcraft.ConsoleUtil;
 using MonoMod.Utils;
 
 namespace Witchcraft.Logging;
@@ -51,6 +49,7 @@ internal class ConsoleWindow
     {
         if (IsAttached)
             return;
+
         Initialize();
 
         if (OriginalStdoutHandle == IntPtr.Zero)
@@ -66,7 +65,9 @@ internal class ConsoleWindow
             if (!AllocConsole())
             {
                 var error = Marshal.GetLastWin32Error();
-                if (error != 5) throw new Win32Exception("AllocConsole() failed");
+
+                if (error != 5)
+                    throw new Win32Exception("AllocConsole() failed");
             }
 
             // Restore Foreground
@@ -79,8 +80,7 @@ internal class ConsoleWindow
         if (!SetStdHandle(STD_OUTPUT_HANDLE, ConsoleOutHandle))
             throw new Win32Exception("SetStdHandle() failed");
 
-        if (OriginalStdoutHandle != IntPtr.Zero && ConsoleManager.ConfigConsoleOutRedirectType.Value ==
-            ConsoleManager.ConsoleOutRedirectType.ConsoleOut)
+        if (OriginalStdoutHandle != IntPtr.Zero && ConsoleManager.ConfigConsoleOutRedirectType.Value == ConsoleManager.ConsoleOutRedirectType.ConsoleOut)
             CloseHandle(OriginalStdoutHandle);
 
         IsAttached = true;
@@ -90,10 +90,12 @@ internal class ConsoleWindow
     {
         if (!IsAttached)
             return;
+
         Initialize();
 
         var hwnd = GetConsoleWindow();
         var hmenu = getSystemMenu(hwnd, false);
+
         if (hmenu != IntPtr.Zero)
             deleteMenu(hmenu, SC_CLOSE, MF_BYCOMMAND);
     }
@@ -121,6 +123,7 @@ internal class ConsoleWindow
     {
         if (methodsInited)
             return;
+
         methodsInited = true;
 
         // Some games may ship user32.dll with some methods missing. As such, we load the DLL explicitly from system folder
@@ -144,13 +147,8 @@ internal class ConsoleWindow
     private static extern bool CloseHandle(IntPtr handle);
 
     [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-    private static extern IntPtr CreateFile(string fileName,
-                                            uint desiredAccess,
-                                            int shareMode,
-                                            IntPtr securityAttributes,
-                                            int creationDisposition,
-                                            int flagsAndAttributes,
-                                            IntPtr templateFile);
+    private static extern IntPtr CreateFile(string fileName, uint desiredAccess, int shareMode, IntPtr securityAttributes, int creationDisposition, int flagsAndAttributes, IntPtr
+        templateFile);
 
     [DllImport("kernel32.dll", SetLastError = false)]
     private static extern bool FreeConsole();
@@ -166,7 +164,6 @@ internal class ConsoleWindow
 
     [DllImport("kernel32.dll", SetLastError = true)]
     private static extern IntPtr LoadLibraryEx(string lpLibFileName, IntPtr hFile, uint dwFlags);
-
 
     [UnmanagedFunctionPointer(CallingConvention.Winapi)]
     [return: MarshalAs(UnmanagedType.Bool)]

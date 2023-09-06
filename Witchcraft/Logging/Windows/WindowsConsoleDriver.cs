@@ -1,14 +1,9 @@
-using System;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using BepInEx.ConsoleUtil;
-using HarmonyLib;
 using Microsoft.Win32.SafeHandles;
 using MonoMod.Utils;
-using UnityInjector.ConsoleUtil;
+using Witchcraft.ConsoleUtil;
+using System.Text;
 
-namespace BepInEx;
+namespace Witchcraft.Logging.Windows;
 
 internal class WindowsConsoleDriver : IConsoleDriver
 {
@@ -22,13 +17,14 @@ internal class WindowsConsoleDriver : IConsoleDriver
         AccessTools.Constructor(typeof(FileStream), new[] { typeof(IntPtr), typeof(FileAccess) })
     }.FirstOrDefault(m => m != null);
 
-    private readonly Func<int> getWindowHeight = AccessTools
-                                                 .PropertyGetter(typeof(Console), nameof(Console.WindowHeight))
-                                                 ?.CreateDelegate<Func<int>>();
+    /// <summary>
+    ///     An encoding for UTF-8 which does not emit a byte order mark (BOM).
+    /// </summary>
+    public static Encoding UTF8NoBom { get; } = new UTF8Encoding(false);
 
-    private readonly Func<int> getWindowWidth = AccessTools
-                                                .PropertyGetter(typeof(Console), nameof(Console.WindowWidth))
-                                                ?.CreateDelegate<Func<int>>();
+    private readonly Func<int> getWindowHeight = AccessTools.PropertyGetter(typeof(Console), nameof(Console.WindowHeight))?.CreateDelegate<Func<int>>();
+
+    private readonly Func<int> getWindowWidth = AccessTools.PropertyGetter(typeof(Console), nameof(Console.WindowWidth))?.CreateDelegate<Func<int>>();
 
     private bool useManagedEncoder;
 
@@ -98,6 +94,7 @@ internal class WindowsConsoleDriver : IConsoleDriver
         // If stdout exists, write to it, otherwise make it the same as console out
         // Not sure if this is needed? Does the original Console.Out still work?
         var stdout = GetOutHandle();
+
         if (stdout == IntPtr.Zero)
         {
             StandardOut = TextWriter.Null;
@@ -106,18 +103,11 @@ internal class WindowsConsoleDriver : IConsoleDriver
         }
 
         var originalOutStream = OpenFileStream(stdout);
-        StandardOut = new StreamWriter(originalOutStream, Utility.UTF8NoBom)
-        {
-            AutoFlush = true
-        };
+        StandardOut = new StreamWriter(originalOutStream, UTF8NoBom) { AutoFlush = true };
 
         var consoleOutStream = OpenFileStream(ConsoleWindow.ConsoleOutHandle);
         // Can't use Console.OutputEncoding because it can be null (i.e. not preference by user)
-        ConsoleOut = new StreamWriter(consoleOutStream,
-                                      useManagedEncoder ? Utility.UTF8NoBom : ConsoleEncoding.OutputEncoding)
-        {
-            AutoFlush = true
-        };
+        ConsoleOut = new StreamWriter(consoleOutStream, useManagedEncoder ? UTF8NoBom : ConsoleEncoding.OutputEncoding) { AutoFlush = true };
         ConsoleActive = true;
     }
 
@@ -146,34 +136,23 @@ internal class WindowsConsoleDriver : IConsoleDriver
         if (ReflectionHelper.IsCore)
         {
             var windowsConsoleStreamType = Type.GetType("System.ConsolePal+WindowsConsoleStream, System.Console", true);
-            var constructor = AccessTools.Constructor(windowsConsoleStreamType,
-                                                      new[] { typeof(IntPtr), typeof(FileAccess), typeof(bool) });
+            var constructor = AccessTools.Constructor(windowsConsoleStreamType, new[] { typeof(IntPtr), typeof(FileAccess), typeof(bool) });
             return (Stream)constructor.Invoke(new object[] { handle, FileAccess.Write, true });
         }
 
         var fileHandle = new SafeFileHandle(handle, false);
-        var ctorParams = AccessTools.ActualParameters(FileStreamCtor,
-                                                      new object[]
-                                                      {
-                                                          fileHandle, fileHandle.DangerousGetHandle(),
-                                                          FileAccess.Write
-                                                      });
+        var ctorParams = AccessTools.ActualParameters(FileStreamCtor, new object[]
+        {
+            fileHandle, fileHandle.DangerousGetHandle(),
+            FileAccess.Write
+        });
         return (FileStream) Activator.CreateInstance(typeof(FileStream), ctorParams);
     }
 
-    private IntPtr GetOutHandle()
+    private IntPtr GetOutHandle() => ConsoleManager.ConfigConsoleOutRedirectType.Value switch
     {
-        switch (ConsoleManager.ConfigConsoleOutRedirectType.Value)
-        {
-            case ConsoleManager.ConsoleOutRedirectType.ConsoleOut:
-                return ConsoleWindow.ConsoleOutHandle;
-            case ConsoleManager.ConsoleOutRedirectType.StandardOut:
-                return ConsoleWindow.OriginalStdoutHandle;
-            case ConsoleManager.ConsoleOutRedirectType.Auto:
-            default:
-                return ConsoleWindow.OriginalStdoutHandle != IntPtr.Zero
-                           ? ConsoleWindow.OriginalStdoutHandle
-                           : ConsoleWindow.ConsoleOutHandle;
-        }
-    }
+        ConsoleManager.ConsoleOutRedirectType.ConsoleOut => ConsoleWindow.ConsoleOutHandle,
+        ConsoleManager.ConsoleOutRedirectType.StandardOut =>ConsoleWindow.OriginalStdoutHandle,
+        ConsoleManager.ConsoleOutRedirectType.Auto or _ => ConsoleWindow.OriginalStdoutHandle != IntPtr.Zero ? ConsoleWindow.OriginalStdoutHandle : ConsoleWindow.ConsoleOutHandle
+    };
 }

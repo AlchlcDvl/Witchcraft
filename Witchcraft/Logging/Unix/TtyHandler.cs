@@ -12,17 +12,14 @@ internal class TtyInfo
 
     public string[] ForegroundColorStrings { get; set; }
 
-    public static TtyInfo Default { get; } = new()
-    {
-        MaxColors = 0
-    };
+    public static TtyInfo Default { get; } = new() { MaxColors = 0 };
 
     public string GetAnsiCode(ConsoleColor color)
     {
         if (MaxColors <= 0 || ForegroundColorStrings == null)
             return string.Empty;
 
-        var index = (int) color % MaxColors;
+        var index = (int)color % MaxColors;
         return ForegroundColorStrings[index];
     }
 }
@@ -58,13 +55,17 @@ internal static class TtyHandler
             return null;
 
         var termInfoVar = Environment.GetEnvironmentVariable("TERMINFO");
+
         if (termInfoVar != null && Directory.Exists(termInfoVar))
         {
             var text = TryTermInfoDir(termInfoVar, term);
-            if (text != null) return text;
+
+            if (text != null)
+                return text;
         }
 
         foreach (var location in ncursesLocations)
+        {
             if (Directory.Exists(location))
             {
                 var text = TryTermInfoDir(location, term);
@@ -72,6 +73,7 @@ internal static class TtyHandler
                 if (text != null)
                     return text;
             }
+        }
 
         return null;
     }
@@ -95,15 +97,11 @@ internal static class TtyHandler
 
 internal static class TtyInfoParser
 {
-    private static readonly int[] ansiColorMapping =
-    {
-        0, 4, 2, 6, 1, 5, 3, 7, 8, 12, 10, 14, 9, 13, 11, 15
-    };
+    private static readonly int[] ansiColorMapping = { 0, 4, 2, 6, 1, 5, 3, 7, 8, 12, 10, 14, 9, 13, 11, 15 };
 
     public static TtyInfo Parse(byte[] buffer)
     {
         int intSize;
-
 
         int magic = GetInt16(buffer, 0);
 
@@ -136,47 +134,32 @@ internal static class TtyInfoParser
         baseOffset += boolFieldLength;                          // Length of bool field section
         baseOffset += baseOffset % 2;                           // Correct for boundary
 
-        var colorOffset =
-            baseOffset
-          + intSize * (int) TermInfoNumbers.MaxColors; // Finally the offset for the max color integer
+        var colorOffset = baseOffset + intSize * (int) TermInfoNumbers.MaxColors; // Finally the offset for the max color integer
 
         //int stringOffset = baseOffset + (intSize * intFieldLength);
 
-        //int foregoundColorOffset =
-        //	stringOffset
-        //	+ (2 * (int)TermInfoStrings.SetAForeground);
+        //int foregoundColorOffset = stringOffset + (2 * (int)TermInfoStrings.SetAForeground);
 
-        //foregoundColorOffset = stringOffset
-        //					   + (2 * strOffsetFieldLength)
-        //					   + GetInt16(buffer, foregoundColorOffset);
+        //foregoundColorOffset = stringOffset + (2 * strOffsetFieldLength) + GetInt16(buffer, foregoundColorOffset);
 
-        var info = new TtyInfo();
+        var info = new TtyInfo
+        {
+            MaxColors = GetInteger(intSize, buffer, colorOffset),
 
-        info.MaxColors = GetInteger(intSize, buffer, colorOffset);
+            //string setForegroundTemplate = GetString(buffer, foregoundColorOffset);
 
-        //string setForegroundTemplate = GetString(buffer, foregoundColorOffset);
-
-        //info.ForegroundColorStrings = ansiColorMapping.Select(x => setForegroundTemplate.Replace("%p1%", x.ToString())).ToArray();
-        info.ForegroundColorStrings =
-            ansiColorMapping.Select(x => $"\u001B[{(x > 7 ? 82 + x : 30 + x)}m").ToArray();
+            //info.ForegroundColorStrings = ansiColorMapping.Select(x => setForegroundTemplate.Replace("%p1%", x.ToString())).ToArray();
+            ForegroundColorStrings = ansiColorMapping.Select(x => $"\u001B[{(x > 7 ? 82 + x : 30 + x)}m").ToArray()
+        };
 
         return info;
     }
 
-    private static int GetInt32(byte[] buffer, int offset) =>
-        buffer[offset]
-      | (buffer[offset + 1] << 8)
-      | (buffer[offset + 2] << 16)
-      | (buffer[offset + 3] << 24);
+    private static int GetInt32(byte[] buffer, int offset) => buffer[offset] | (buffer[offset + 1] << 8) | (buffer[offset + 2] << 16) | (buffer[offset + 3] << 24);
 
-    private static short GetInt16(byte[] buffer, int offset) =>
-        (short) (buffer[offset]
-               | (buffer[offset + 1] << 8));
+    private static short GetInt16(byte[] buffer, int offset) => (short)(buffer[offset] | (buffer[offset + 1] << 8));
 
-    private static int GetInteger(int intSize, byte[] buffer, int offset) =>
-        intSize == 2
-            ? GetInt16(buffer, offset)
-            : GetInt32(buffer, offset);
+    private static int GetInteger(int intSize, byte[] buffer, int offset) => intSize == 2 ? GetInt16(buffer, offset) : GetInt32(buffer, offset);
 
     private static string GetString(byte[] buffer, int offset)
     {
