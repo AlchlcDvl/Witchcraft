@@ -21,8 +21,7 @@ public class DiskLogListener : ILogListener
 
         FileStream fileStream;
 
-        while (!Utility.TryOpenFileStream(Path.Combine(ModPath, localPath), appendLog ? FileMode.Append : FileMode.Create, out fileStream, share: FileShare.Read, access:
-            FileAccess.Write))
+        while (!Utility.TryOpenFileStream(Path.Combine(ModPath, localPath), appendLog ? FileMode.Append : FileMode.Create, out fileStream, share: FileShare.Read, access: FileAccess.Write))
         {
             if (counter == fileLimit)
             {

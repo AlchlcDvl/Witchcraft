@@ -36,6 +36,7 @@ public static class ConsoleManager
             for (var i = 0; i < args.Length; i++)
             {
                 var res = args[i];
+
                 if (res == ENABLE_CONSOLE_ARG && i + 1 < args.Length && bool.TryParse(args[i + 1], out var enable))
                     EnableConsoleArgOverride = enable;
             }
