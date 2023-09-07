@@ -9,7 +9,7 @@ public class Witchcraft
     public static void Start()
     {
         //WitchLogger.Init();
-        //Register(Assembly.GetExecutingAssembly());
+        Register(typeof(Witchcraft));
 
         if (!Directory.Exists(DiskLogListener.ModPath))
             Directory.CreateDirectory(DiskLogListener.ModPath);
@@ -18,15 +18,22 @@ public class Witchcraft
         Console.WriteLine("Magic is brewing!");
     }
 
-    public static bool Register(Type type)
+    public static bool Register(params Type[] types)
     {
         //WitchLogger.LogInfo($"Registering {assembly.FullName}");
 
-        if (Registered.Contains(type))
+        if (types.All(Registered.Contains))
             return false;
 
-        Registered.Add(type);
-        HarmonyQuickPatcher.ApplyHarmonyPatches(type);
+        foreach (var type in types)
+        {
+            if (!Registered.Contains(type))
+            {
+                Registered.Add(type);
+                HarmonyQuickPatcher.ApplyHarmonyPatches(type);
+            }
+        }
+
         return true;
     }
 }
@@ -43,11 +50,11 @@ public class MenuItem
 
     private static void OpenDirectory()
     {
-        var text = Path.Combine(Directory.GetCurrentDirectory(), "SalemModLoader", "ModFolders", "Witchcraft");
+        var path = Path.Combine(Directory.GetCurrentDirectory(), "SalemModLoader", "ModFolders", "Witchcraft");
 
         if (Environment.OSVersion.Platform is PlatformID.MacOSX or PlatformID.Unix)
-            System.Diagnostics.Process.Start("open", "\"" + text + "\""); //code stolen from jan who stole from tuba
+            System.Diagnostics.Process.Start("open", "\"" + path + "\""); //code stolen from jan who stole from tuba
         else
-            Application.OpenURL("file://" + text);
+            Application.OpenURL("file://" + path);
     }
 }
