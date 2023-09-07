@@ -1,7 +1,6 @@
 using Microsoft.Win32.SafeHandles;
 using MonoMod.Utils;
 using Witchcraft.ConsoleUtil;
-using System.Text;
 
 namespace Witchcraft.Logging.Windows;
 
@@ -16,11 +15,6 @@ internal class WindowsConsoleDriver : IConsoleDriver
         AccessTools.Constructor(typeof(FileStream), new[] { typeof(SafeFileHandle), typeof(FileAccess) }),
         AccessTools.Constructor(typeof(FileStream), new[] { typeof(IntPtr), typeof(FileAccess) })
     }.FirstOrDefault(m => m != null);
-
-    /// <summary>
-    ///     An encoding for UTF-8 which does not emit a byte order mark (BOM).
-    /// </summary>
-    public static Encoding UTF8NoBom { get; } = new UTF8Encoding(false);
 
     private readonly Func<int> getWindowHeight = AccessTools.PropertyGetter(typeof(Console), nameof(Console.WindowHeight))?.CreateDelegate<Func<int>>();
 
@@ -103,11 +97,11 @@ internal class WindowsConsoleDriver : IConsoleDriver
         }
 
         var originalOutStream = OpenFileStream(stdout);
-        StandardOut = new StreamWriter(originalOutStream, UTF8NoBom) { AutoFlush = true };
+        StandardOut = new StreamWriter(originalOutStream, Utility.UTF8NoBom) { AutoFlush = true };
 
         var consoleOutStream = OpenFileStream(ConsoleWindow.ConsoleOutHandle);
         // Can't use Console.OutputEncoding because it can be null (i.e. not preference by user)
-        ConsoleOut = new StreamWriter(consoleOutStream, useManagedEncoder ? UTF8NoBom : ConsoleEncoding.OutputEncoding) { AutoFlush = true };
+        ConsoleOut = new StreamWriter(consoleOutStream, useManagedEncoder ? Utility.UTF8NoBom : ConsoleEncoding.OutputEncoding) { AutoFlush = true };
         ConsoleActive = true;
     }
 
@@ -146,13 +140,13 @@ internal class WindowsConsoleDriver : IConsoleDriver
             fileHandle, fileHandle.DangerousGetHandle(),
             FileAccess.Write
         });
-        return (FileStream) Activator.CreateInstance(typeof(FileStream), ctorParams);
+        return (FileStream)Activator.CreateInstance(typeof(FileStream), ctorParams);
     }
 
-    private IntPtr GetOutHandle() => ConsoleManager.ConfigConsoleOutRedirectType.Value switch
+    private IntPtr GetOutHandle() => Settings.ConfigConsoleOutRedirectType switch
     {
-        ConsoleManager.ConsoleOutRedirectType.ConsoleOut => ConsoleWindow.ConsoleOutHandle,
-        ConsoleManager.ConsoleOutRedirectType.StandardOut =>ConsoleWindow.OriginalStdoutHandle,
-        ConsoleManager.ConsoleOutRedirectType.Auto or _ => ConsoleWindow.OriginalStdoutHandle != IntPtr.Zero ? ConsoleWindow.OriginalStdoutHandle : ConsoleWindow.ConsoleOutHandle
+        ConsoleOutRedirectType.ConsoleOut => ConsoleWindow.ConsoleOutHandle,
+        ConsoleOutRedirectType.StandardOut =>ConsoleWindow.OriginalStdoutHandle,
+        ConsoleOutRedirectType.Auto or _ => ConsoleWindow.OriginalStdoutHandle != IntPtr.Zero ? ConsoleWindow.OriginalStdoutHandle : ConsoleWindow.ConsoleOutHandle
     };
 }

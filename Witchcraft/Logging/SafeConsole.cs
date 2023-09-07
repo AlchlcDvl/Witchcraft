@@ -19,6 +19,8 @@ internal static class SafeConsole
     private static GetStringDelegate _getTitle;
     private static SetStringDelegate _setTitle;
 
+    private const BindingFlags BINDING_FLAGS = BindingFlags.Public | BindingFlags.Static;
+
     static SafeConsole() => InitColors(typeof(Console));
 
     public static bool BackgroundColorExists { get; private set; }
@@ -47,8 +49,6 @@ internal static class SafeConsole
 
     private static void InitColors(Type tConsole)
     {
-        const BindingFlags BINDING_FLAGS = BindingFlags.Public | BindingFlags.Static;
-
         var gfc = tConsole.GetMethod("get_ForegroundColor", BINDING_FLAGS);
         var sfc = tConsole.GetMethod("set_ForegroundColor", BINDING_FLAGS);
 
@@ -58,29 +58,17 @@ internal static class SafeConsole
         var gtt = tConsole.GetMethod("get_Title", BINDING_FLAGS);
         var stt = tConsole.GetMethod("set_Title", BINDING_FLAGS);
 
-        _setForegroundColor = sfc != null
-                                  ? (SetColorDelegate) Delegate.CreateDelegate(typeof(SetColorDelegate), sfc)
-                                  : value => { };
+        _setForegroundColor = sfc != null ? (SetColorDelegate)Delegate.CreateDelegate(typeof(SetColorDelegate), sfc) : value => {};
 
-        _setBackgroundColor = sbc != null
-                                  ? (SetColorDelegate) Delegate.CreateDelegate(typeof(SetColorDelegate), sbc)
-                                  : value => { };
+        _setBackgroundColor = sbc != null ? (SetColorDelegate)Delegate.CreateDelegate(typeof(SetColorDelegate), sbc) : value => {};
 
-        _getForegroundColor = gfc != null
-                                  ? (GetColorDelegate) Delegate.CreateDelegate(typeof(GetColorDelegate), gfc)
-                                  : () => ConsoleColor.Gray;
+        _getForegroundColor = gfc != null ? (GetColorDelegate)Delegate.CreateDelegate(typeof(GetColorDelegate), gfc) : () => ConsoleColor.Gray;
 
-        _getBackgroundColor = gbc != null
-                                  ? (GetColorDelegate) Delegate.CreateDelegate(typeof(GetColorDelegate), gbc)
-                                  : () => ConsoleColor.Black;
+        _getBackgroundColor = gbc != null ? (GetColorDelegate)Delegate.CreateDelegate(typeof(GetColorDelegate), gbc) : () => ConsoleColor.Black;
 
-        _getTitle = gtt != null
-                        ? (GetStringDelegate) Delegate.CreateDelegate(typeof(GetStringDelegate), gtt)
-                        : () => string.Empty;
+        _getTitle = gtt != null ? (GetStringDelegate)Delegate.CreateDelegate(typeof(GetStringDelegate), gtt) : () => string.Empty;
 
-        _setTitle = stt != null
-                        ? (SetStringDelegate) Delegate.CreateDelegate(typeof(SetStringDelegate), stt)
-                        : value => { };
+        _setTitle = stt != null ? (SetStringDelegate)Delegate.CreateDelegate(typeof(SetStringDelegate), stt) : value => {};
 
         BackgroundColorExists = _setBackgroundColor != null && _getBackgroundColor != null;
         ForegroundColorExists = _setForegroundColor != null && _getForegroundColor != null;

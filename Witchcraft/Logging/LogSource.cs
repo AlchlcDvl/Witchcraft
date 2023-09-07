@@ -10,7 +10,7 @@ public class LogSource : ILogSource
 
     public event EventHandler<LogEventArgs> LogEvent;
 
-    public void Log(LogLevel level, object data) => LogEvent?.Invoke(this, new LogEventArgs(data, level, this));
+    public void Log(LogLevel level, object data) => LogEvent?.Invoke(this, new(data, level, this));
 
     public void LogFatal(object data) => Log(LogLevel.Fatal, data);
 

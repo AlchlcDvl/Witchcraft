@@ -4,17 +4,16 @@ public static class HarmonyQuickPatcher
 {
     private static readonly Harmony Pseudo = new("PseudoHarmony");
 
-    public static void ApplyHarmonyPatches(Assembly assembly)
+    public static void ApplyHarmonyPatches(Type type)
     {
-        assembly.GetTypes()
-            .SelectMany(type => type.GetMethods(AccessFlags.StaticAccessFlags))
+        type.GetMethods(AccessFlags.StaticAccessFlags)
             .Where(t => t.GetCustomAttribute<QuickHarmonyAttribute>() != null)
             .ForEach(method =>
             {
                 var harmonyAttribute = method.GetCustomAttribute<QuickHarmonyAttribute>()!;
                 var harmonyMethod = new HarmonyMethod(method, priority: harmonyAttribute.Priority);
                 var targetMethod = (MethodBase)AccessTools.Method(harmonyAttribute.TargetType, harmonyAttribute.MethodName);
-                Logger.LogInfo($"Quick Patching => {targetMethod.Name} ({harmonyAttribute.TargetType})");
+                //WitchLogger.LogInfo($"Quick Patching => {targetMethod.Name} ({harmonyAttribute.TargetType})");
                 
                 switch (harmonyAttribute.PatchType)
                 {

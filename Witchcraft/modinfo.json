@@ -43,6 +43,38 @@
         "Description": "Enables or disables the logging of Info level messages",
         "DefaultValue": true,
         "AvailableInGame": true
+      },
+      {
+        "Name": "Prevent Close",
+        "Description": "If enabled, will prevent closing the console (either by deleting the close button or in other platform-specific way)",
+        "DefaultValue": false,
+        "AvailableInGame": false
+      },
+      {
+        "Name": "Shift-JIS Encoding",
+        "Description": "If enabled, console is set to the Shift-JIS encoding, otherwise UTF-8 encoding",
+        "DefaultValue": false,
+        "AvailableInGame": false
+      },
+      {
+        "Name": "Force TTY Driver",
+        "Description": "If enabled, forces to use custom Witchcraft TTY driver for handling terminal output on unix",
+        "DefaultValue": false,
+        "AvailableInGame": false
+      }
+    ],
+    "DropdownSettings":
+    [
+      {
+        "Name": "Console Out Redirect Type",
+        "Description": "Fancy words for just how does the logging terminal open",
+        "Options":
+        [
+          "Auto",
+          "Console Out",
+          "Standard Out"
+        ],
+        "AvailableInGame": false
       }
     ]
   }

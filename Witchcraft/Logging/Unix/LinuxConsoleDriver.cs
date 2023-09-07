@@ -6,6 +6,9 @@ internal class LinuxConsoleDriver : IConsoleDriver
     {
         UseMonoTtyDriver = false;
 
+        if (Settings.ForceTTYDriver)
+            return;
+
         var consoleDriverType = typeof(Console).Assembly.GetType("System.ConsoleDriver");
 
         if (consoleDriverType != null)
@@ -63,7 +66,7 @@ internal class LinuxConsoleDriver : IConsoleDriver
         ConsoleOut = StandardOut;
     }
 
-    public void CreateConsole(uint codepage) => Logger.LogWarning("An external console currently cannot be spawned on a Unix platform.");
+    public void CreateConsole(uint codepage) {} //=> WitchLogger.LogWarning("An external console currently cannot be spawned on a Unix platform.");
 
     public void DetachConsole() => throw new PlatformNotSupportedException("Cannot detach console on a Unix platform");
 

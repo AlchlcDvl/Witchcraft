@@ -1,6 +1,5 @@
 namespace Witchcraft.Logging;
 
-[Flags]
 public enum LogLevel
 {
     None = 0,
@@ -9,5 +8,5 @@ public enum LogLevel
     Error = 4,
     Warning = 8,
     Info = 16,
-    All = Fatal | Critical | Error | Warning | Info
+    All = 32
 }

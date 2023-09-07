@@ -1,24 +1,25 @@
 using System.ComponentModel;
 using System.Text;
 using MonoMod.Utils;
-using Witchcraft.CustomOptions;
+using Witchcraft.Logging.Unix;
+using Witchcraft.Logging.Windows;
 
 namespace Witchcraft.Logging;
 
+public enum ConsoleOutRedirectType
+{
+    [Description("Auto")]
+    Auto = 0,
+
+    [Description("Console Out")]
+    ConsoleOut,
+
+    [Description("Standard Out")]
+    StandardOut
+}
+
 public static class ConsoleManager
 {
-    public enum ConsoleOutRedirectType
-    {
-        [Description("Auto")]
-        Auto = 0,
-
-        [Description("Console Out")]
-        ConsoleOut,
-
-        [Description("Standard Out")]
-        StandardOut
-    }
-
     private const uint SHIFT_JIS_CP = 932;
 
     private const string ENABLE_CONSOLE_ARG = "--enable-console";
@@ -67,9 +68,9 @@ public static class ConsoleManager
 
     public static void Initialize(bool alreadyActive, bool useManagedEncoder)
     {
-        if (PlatformHelper.Is(Platform.Unix))
+        if (PlatformHelper.Is(MonoMod.Utils.Platform.Unix))
             Driver = new LinuxConsoleDriver();
-        else if (PlatformHelper.Is(Platform.Windows))
+        else if (PlatformHelper.Is(MonoMod.Utils.Platform.Windows))
             Driver = new WindowsConsoleDriver();
         else
             throw new PlatformNotSupportedException("Was unable to determine console driver for platform " + PlatformHelper.Current);
@@ -93,11 +94,11 @@ public static class ConsoleManager
         // Apparently some versions of Mono throw a "Encoding name 'xxx' not supported"
         // if you use Encoding.GetEncoding
         // That's why we use of codepages directly and handle then in console drivers separately
-        var codepage = ConfigConsoleShiftJis.Value ? SHIFT_JIS_CP : (uint)Encoding.UTF8.CodePage;
+        var codepage = Settings.ConsoleShiftJis ? SHIFT_JIS_CP : (uint)Encoding.UTF8.CodePage;
 
         Driver.CreateConsole(codepage);
 
-        if (ConfigPreventClose.Value)
+        if (Settings.PreventClose)
             Driver.PreventClose();
     }
 

@@ -80,7 +80,7 @@ internal class ConsoleWindow
         if (!SetStdHandle(STD_OUTPUT_HANDLE, ConsoleOutHandle))
             throw new Win32Exception("SetStdHandle() failed");
 
-        if (OriginalStdoutHandle != IntPtr.Zero && ConsoleManager.ConfigConsoleOutRedirectType.Value == ConsoleManager.ConsoleOutRedirectType.ConsoleOut)
+        if (OriginalStdoutHandle != IntPtr.Zero && Settings.ConfigConsoleOutRedirectType == ConsoleOutRedirectType.ConsoleOut)
             CloseHandle(OriginalStdoutHandle);
 
         IsAttached = true;
