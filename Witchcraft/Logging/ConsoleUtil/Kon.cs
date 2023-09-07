@@ -1,15 +1,9 @@
 using System.Runtime.InteropServices;
 
-#if NET35
-using System.Security.Permissions;
-#endif
-
 namespace Witchcraft.ConsoleUtil;
 
 internal class Kon
 {
-    #region pinvoke
-
     [DllImport("kernel32.dll", SetLastError = true)]
     private static extern bool GetConsoleScreenBufferInfo(IntPtr hConsoleOutput, out CONSOLE_SCREEN_BUFFER_INFO lpConsoleScreenBufferInfo);
 
@@ -18,10 +12,6 @@ internal class Kon
 
     [DllImport("kernel32.dll", SetLastError = true)]
     private static extern IntPtr GetStdHandle(int nStdHandle);
-
-    #endregion
-
-    #region Types
 
     private struct CONSOLE_SCREEN_BUFFER_INFO
     {
@@ -47,10 +37,6 @@ internal class Kon
     }
 
     private static readonly IntPtr INVALID_HANDLE_VALUE = new(-1);
-
-    #endregion
-
-    #region Private
 
     private static short ConsoleColorToColorAttribute(short color, bool isBackground)
     {
@@ -95,9 +81,6 @@ internal class Kon
 
     private static void SetConsoleColor(bool isBackground, ConsoleColor c)
     {
-#if NET35
-        new UIPermission(UIPermissionWindow.SafeTopLevelWindows).Demand();
-#endif
         var color = ConsoleColorToColorAttribute((short) c, isBackground);
         var bufferInfo = GetBufferInfo(false, out var flag);
 
@@ -130,10 +113,6 @@ internal class Kon
 
     internal static IntPtr conOut = IntPtr.Zero;
 
-    #endregion
-
-    #region Public
-
     public static void ResetConsoleColor()
     {
         SetConsoleColor(true, ConsoleColor.Black);
@@ -151,6 +130,4 @@ internal class Kon
         get => GetConsoleColor(true);
         set => SetConsoleColor(true, value);
     }
-
-    #endregion
 }

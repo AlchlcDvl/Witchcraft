@@ -4,6 +4,28 @@ public static class WitchLogger
 {
     private static readonly Dictionary<string, LogSource> WitchcraftLoggers = new();
 
+    public static void InitializeLoggers()
+    {
+        try
+        {
+            ConsoleManager.CheckOverrides();
+
+            if (ConsoleManager.ConsoleEnabled)
+            {
+                ConsoleManager.CreateConsole();
+                new ConsoleLogListener();
+                ConsoleManager.SetConsoleTitle("Witchcraft Console");
+            }
+
+            if (Settings.WriteToDisk)
+                new DiskLogListener("LogOutput.log", Settings.AppendLogs, Settings.InstantFlushing, Settings.ConcurrentFileLimit);
+        }
+        catch
+        {
+            Console.WriteLine("Unable to start loggers");
+        }
+    }
+
     public static void Init(params string[] names)
     {
         WitchcraftLoggers.TryAdd("Witchcraft", new("Witchcraft"));

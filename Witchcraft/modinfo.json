@@ -61,6 +61,24 @@
         "Description": "If enabled, forces to use custom Witchcraft TTY driver for handling terminal output on unix",
         "DefaultValue": false,
         "AvailableInGame": false
+      },
+      {
+        "Name": "Append Logs",
+        "Description": "Appends to the log file instead of overwriting, on game startup",
+        "DefaultValue": false,
+        "AvailableInGame": false
+      },
+      {
+        "Name": "Write To Disk",
+        "Description": "Enables writing log messages to disk",
+        "DefaultValue": false,
+        "AvailableInGame": false
+      },
+      {
+        "Name": "Instant Flushing",
+        "Description": "If enabled, instantly writes any received log entries to disk",
+        "DefaultValue": false,
+        "AvailableInGame": false
       }
     ],
     "DropdownSettings":
@@ -74,6 +92,17 @@
           "Console Out",
           "Standard Out"
         ],
+        "AvailableInGame": false
+      }
+    ],
+    "IntegerInputSettings":
+    [
+      {
+        "Name": "Concurrent File Limit",
+        "Description": "The maximum amount of concurrent log files that will be written to disk",
+        "DefaultValue": 5,
+        "MinValue": 0,
+        "MaxValue": 10,
         "AvailableInGame": false
       }
     ]

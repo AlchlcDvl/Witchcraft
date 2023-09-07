@@ -24,9 +24,9 @@ public static class ConsoleManager
 
     private const string ENABLE_CONSOLE_ARG = "--enable-console";
 
-    private static readonly bool? EnableConsoleArgOverride;
+    private static bool? EnableConsoleArgOverride;
 
-    static ConsoleManager()
+    public static void CheckOverrides()
     {
         // Ensure GetCommandLineArgs failing (e.g. on unix) does not kill bepin
         try
@@ -52,11 +52,6 @@ public static class ConsoleManager
     internal static IConsoleDriver Driver { get; set; }
 
     /// <summary>
-    ///     True if an external console has been started, false otherwise.
-    /// </summary>
-    public static bool ConsoleActive => Driver?.ConsoleActive ?? false;
-
-    /// <summary>
     ///     The stream that writes to the standard out stream of the process. Should never be null.
     /// </summary>
     public static TextWriter StandardOutStream => Driver?.StandardOut;
@@ -65,7 +60,6 @@ public static class ConsoleManager
     ///     The stream that writes to an external console. Null if no such console exists
     /// </summary>
     public static TextWriter ConsoleStream => Driver?.ConsoleOut;
-
 
     public static void Initialize(bool alreadyActive, bool useManagedEncoder)
     {
@@ -87,13 +81,8 @@ public static class ConsoleManager
 
     public static void CreateConsole()
     {
-        if (ConsoleActive)
-            return;
-
         DriverCheck();
-
-        // Apparently some versions of Mono throw a "Encoding name 'xxx' not supported"
-        // if you use Encoding.GetEncoding
+        // Apparently some versions of Mono throw a "Encoding name 'xxx' not supported" if you use Encoding.GetEncoding
         // That's why we use of codepages directly and handle then in console drivers separately
         var codepage = Settings.ConsoleShiftJis ? SHIFT_JIS_CP : (uint)Encoding.UTF8.CodePage;
 
@@ -105,25 +94,19 @@ public static class ConsoleManager
 
     public static void DetachConsole()
     {
-        if (!ConsoleActive)
-            return;
-
         DriverCheck();
-
-        Driver.DetachConsole();
+        Driver?.DetachConsole();
     }
 
     public static void SetConsoleTitle(string title)
     {
         DriverCheck();
-
-        Driver.SetConsoleTitle(title);
+        Driver?.SetConsoleTitle(title);
     }
 
     public static void SetConsoleColor(ConsoleColor color)
     {
         DriverCheck();
-
-        Driver.SetConsoleColor(color);
+        Driver?.SetConsoleColor(color);
     }
 }

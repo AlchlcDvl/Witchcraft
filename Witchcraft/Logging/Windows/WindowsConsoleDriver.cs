@@ -22,36 +22,6 @@ internal class WindowsConsoleDriver : IConsoleDriver
 
     private bool useManagedEncoder;
 
-    private int ConsoleWidth
-    {
-        get
-        {
-            try
-            {
-                return getWindowWidth?.Invoke() ?? 0;
-            }
-            catch (IOException)
-            {
-                return 0;
-            }
-        }
-    }
-
-    private int ConsoleHeight
-    {
-        get
-        {
-            try
-            {
-                return getWindowHeight?.Invoke() ?? 0;
-            }
-            catch (IOException)
-            {
-                return 0;
-            }
-        }
-    }
-
     public TextWriter StandardOut { get; private set; }
     public TextWriter ConsoleOut { get; private set; }
 
@@ -70,9 +40,7 @@ internal class WindowsConsoleDriver : IConsoleDriver
             StandardOut = new StreamWriter(Console.OpenStandardOutput());
         }
         else
-        {
             StandardOut = Console.Out;
-        }
     }
 
     public void CreateConsole(uint codepage)
@@ -110,18 +78,12 @@ internal class WindowsConsoleDriver : IConsoleDriver
     public void DetachConsole()
     {
         ConsoleWindow.Detach();
-
         ConsoleOut.Close();
         ConsoleOut = null;
-
         ConsoleActive = false;
     }
 
-    public void SetConsoleColor(ConsoleColor color)
-    {
-        SafeConsole.ForegroundColor = color;
-        Kon.ForegroundColor = color;
-    }
+    public void SetConsoleColor(ConsoleColor color) => SafeConsole.ForegroundColor = Kon.ForegroundColor = color;
 
     public void SetConsoleTitle(string title) => ConsoleWindow.Title = title;
 
@@ -135,11 +97,7 @@ internal class WindowsConsoleDriver : IConsoleDriver
         }
 
         var fileHandle = new SafeFileHandle(handle, false);
-        var ctorParams = AccessTools.ActualParameters(FileStreamCtor, new object[]
-        {
-            fileHandle, fileHandle.DangerousGetHandle(),
-            FileAccess.Write
-        });
+        var ctorParams = AccessTools.ActualParameters(FileStreamCtor, new object[] { fileHandle, fileHandle.DangerousGetHandle(), FileAccess.Write });
         return (FileStream)Activator.CreateInstance(typeof(FileStream), ctorParams);
     }
 

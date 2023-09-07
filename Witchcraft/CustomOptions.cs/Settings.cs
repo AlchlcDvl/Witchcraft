@@ -11,6 +11,10 @@ public static class Settings
     public static bool PreventClose => ModSettings.GetBool("Prevent Close");
     public static bool ConsoleShiftJis => ModSettings.GetBool("Shift-JIS Encoding");
     public static bool ForceTTYDriver => ModSettings.GetBool("Force TTY Driver");
+    public static bool AppendLogs => ModSettings.GetBool("Append Logs");
+    public static bool WriteToDisk => ModSettings.GetBool("Write To Disk");
+    public static bool InstantFlushing => ModSettings.GetBool("Instant Flushing");
+    public static int ConcurrentFileLimit => ModSettings.GetInt("Concurrent File Limit");
     public static ConsoleOutRedirectType ConfigConsoleOutRedirectType => ModSettings.GetString("Console Out Redirect Type") switch
     {
         "Console Out" => ConsoleOutRedirectType.ConsoleOut,

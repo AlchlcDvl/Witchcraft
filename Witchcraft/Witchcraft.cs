@@ -8,8 +8,9 @@ public class Witchcraft
 
     public static void Start()
     {
-        //WitchLogger.Init();
-        Register(typeof(Witchcraft));
+        WitchLogger.InitializeLoggers();
+        WitchLogger.Init();
+        Register("Witchcraft", typeof(Witchcraft));
 
         if (!Directory.Exists(DiskLogListener.ModPath))
             Directory.CreateDirectory(DiskLogListener.ModPath);
@@ -18,17 +19,19 @@ public class Witchcraft
         Console.WriteLine("Magic is brewing!");
     }
 
-    public static bool Register(params Type[] types)
+    public static bool Register(string modName, params Type[] types)
     {
-        //WitchLogger.LogInfo($"Registering {assembly.FullName}");
-
         if (types.All(Registered.Contains))
+        {
+            WitchLogger.LogError($"Types in {modName} are already registered");
             return false;
+        }
 
         foreach (var type in types)
         {
             if (!Registered.Contains(type))
             {
+                WitchLogger.LogInfo($"Patching {type.Name} from {modName}");
                 Registered.Add(type);
                 HarmonyQuickPatcher.ApplyHarmonyPatches(type);
             }
