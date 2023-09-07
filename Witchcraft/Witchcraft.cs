@@ -1,44 +1,40 @@
-namespace Main;
+namespace Witchcraft;
 
 [SalemMod]
 public class Witchcraft
 {
-    internal static readonly List<Type> Registered = new();
-    internal static readonly List<string> Directories = new();
+    internal static readonly Dictionary<string, Type[]> Registered = new();
+    public static string ModPath => Path.Combine(Directory.GetCurrentDirectory(), "SalemModLoader", "ModFolders", "Witchcraft");
 
     public static void Start()
     {
-        WitchLogger.InitializeLoggers();
-        WitchLogger.Init();
-        Register("Witchcraft", typeof(Witchcraft));
+        if (!Directory.Exists(ModPath))
+            Directory.CreateDirectory(ModPath);
 
-        if (!Directory.Exists(DiskLogListener.ModPath))
-            Directory.CreateDirectory(DiskLogListener.ModPath);
-
-        Directory.GetDirectories(DiskLogListener.ModPath).ForEach(x => Directories.Add(Path.GetFileName(x)));
+        _ = Register("Witchcraft", new[] { typeof(Witchcraft) });
         Console.WriteLine("Magic is brewing!");
     }
 
-    public static bool Register(string modName, params Type[] types)
+    public static bool Register(string modName, Type[] types)
     {
-        if (types.All(Registered.Contains))
+        if (Registered.ContainsKey(modName))
         {
-            WitchLogger.LogError($"Types in {modName} are already registered");
+            Console.WriteLine($"Types in {modName} are already registered");
             return false;
         }
 
         foreach (var type in types)
         {
-            if (!Registered.Contains(type))
-            {
-                WitchLogger.LogInfo($"Patching {type.Name} from {modName}");
-                Registered.Add(type);
-                HarmonyQuickPatcher.ApplyHarmonyPatches(type);
-            }
+            Console.WriteLine($"Patching {type.Name} from {modName}");
+            HarmonyQuickPatcher.ApplyHarmonyPatches(type);
         }
 
+        Registered.Add(modName, types);
         return true;
     }
+
+    /*[QuickPostfix(typeof(Debug), nameof(Debug.Log))]
+    public static void Log() => Console.WriteLine(Assembly.GetCallingAssembly().FullName);*/
 }
 
 [SalemMenuItem]
