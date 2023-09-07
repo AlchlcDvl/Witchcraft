@@ -1,6 +1,6 @@
 namespace Witchcraft.Patching;
 
-[AttributeUsage(AttributeTargets.Method, Inherited = false)]
+[AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = true)]
 public class QuickHarmonyAttribute : Attribute
 {
     public Type TargetType;

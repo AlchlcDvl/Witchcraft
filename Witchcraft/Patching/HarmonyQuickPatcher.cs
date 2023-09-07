@@ -13,7 +13,6 @@ public static class HarmonyQuickPatcher
                 var harmonyAttribute = method.GetCustomAttribute<QuickHarmonyAttribute>()!;
                 var harmonyMethod = new HarmonyMethod(method, priority: harmonyAttribute.Priority);
                 var targetMethod = (MethodBase)AccessTools.Method(harmonyAttribute.TargetType, harmonyAttribute.MethodName);
-                //WitchLogger.LogInfo($"Quick Patching => {targetMethod.Name} ({harmonyAttribute.TargetType})");
                 
                 switch (harmonyAttribute.PatchType)
                 {
