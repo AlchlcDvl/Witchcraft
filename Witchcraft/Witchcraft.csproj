@@ -19,13 +19,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <None Remove="modinfo.json" />
-        <None Remove="Resources\thumbnail.png" />
-    </ItemGroup>
-
-    <ItemGroup>
         <EmbeddedResource Include="modinfo.json" />
-        <EmbeddedResource Include="Resources\thumbnail.png" />
+        <EmbeddedResource Include="Resources\*" />
     </ItemGroup>
 
     <ItemGroup>

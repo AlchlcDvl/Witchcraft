@@ -3,6 +3,5 @@
   "DisplayName": "Witchcraft",
   "Authors": [ "AlchlcDvl" ],
   "Description": "A modding tool for developers!",
-  "Version": "1.0.0",
-  "RequiredMods": []
+  "Version": "1.0.0"
 }
