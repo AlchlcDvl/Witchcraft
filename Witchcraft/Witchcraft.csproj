@@ -16,6 +16,12 @@
         <Authors>AlchlcDvl</Authors>
         <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
         <EnableDynamicLoading>true</EnableDynamicLoading>
+        <DebugType>embedded</DebugType>
+        <IncludeSymbols>true</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+        <RepositoryType>git</RepositoryType>
+        <RepositoryUrl>https://github.com/AlchlcDvl/Witchcraft</RepositoryUrl>
+        <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
     </PropertyGroup>
 
     <ItemGroup>
@@ -34,10 +40,25 @@
 
     <ItemGroup>
         <Reference Include="Assembly-CSharp"><HintPath>Lib\Assembly-CSharp.dll</HintPath></Reference>
-        <Reference Include="UnityEngine.UI"><HintPath>Lib\UnityEngine.UI.dll</HintPath></Reference>
+        <Reference Include="UnityEngine.UI"><HintPath>Lib\UnityEngine.CoreModule.dll</HintPath></Reference>
         <Reference Include="SalemModLoader"><HintPath>Lib\SalemModLoader.dll</HintPath></Reference>
-        <Reference Include="Unity.TextMeshPro"><HintPath>Lib\Unity.TextMeshPro.dll</HintPath></Reference>
     </ItemGroup>
+
+    <PropertyGroup>
+        <EnableNETAnalyzers>true</EnableNETAnalyzers>
+        <AnalysisLevel>latest</AnalysisLevel>
+        <AnalysisMode>recommended</AnalysisMode>
+        <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.435" PrivateAssets="all" />
+        <AdditionalFiles Include="$(MSBuildThisFileDirectory)\stylecop.json" Link="stylecop.json" Visible="false" />
+    </ItemGroup>
+
+    <PropertyGroup>
+        <CodeAnalysisRuleSet>$(MSBuildThisFileDirectory)\stylecop.ruleset</CodeAnalysisRuleSet>
+    </PropertyGroup>
 
     <Target Name="Copy" AfterTargets="Build">
         <Copy SourceFiles="$(TargetPath)" DestinationFolder="C:/Program Files (x86)/Steam/steamapps/common/Town of Salem 2/SalemModLoader/Mods/" UseSymboliclinksIfPossible="true"></Copy>

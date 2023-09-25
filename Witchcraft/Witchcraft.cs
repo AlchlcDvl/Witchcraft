@@ -1,20 +1,27 @@
 namespace Witchcraft;
 
 [SalemMod]
+/// <summary>Witch's main class.</summary>
 public class Witchcraft
 {
-    internal static readonly Dictionary<string, Assembly> Registered = new();
+    public static readonly Dictionary<string, Assembly> Registered = new();
+
     public static string ModPath => Path.Combine(Directory.GetCurrentDirectory(), "SalemModLoader", "ModFolders", "Witchcraft");
 
-    public static void Start()
+    /// <summary>The start function for Witchcraft.</summary>
+    public void Start()
     {
         if (!Directory.Exists(ModPath))
             Directory.CreateDirectory(ModPath);
 
         _ = Register("Witchcraft", Assembly.GetExecutingAssembly());
-        Console.WriteLine("Magic is brewing!");
+        Console.Write("Magic is brewing!");
     }
 
+    /// <summary>Registers and patches methods from <paramref name="assembly"/>.</summary>
+    /// <param name="modName">The name of the mod.</param>
+    /// <param name="assembly">The <see cref="Assembly"/> that <paramref name="modName"/> is attached to.</param>
+    /// <returns><see langword="true"/> if <paramref name="modName"/> was succesfully registered.</returns>
     public static bool Register(string modName, Assembly assembly)
     {
         if (Registered.ContainsKey(modName))
@@ -25,24 +32,5 @@ public class Witchcraft
 
         HarmonyQuickPatcher.ApplyHarmonyPatches(assembly, modName);
         return Registered.TryAdd(modName, assembly);
-    }
-}
-
-[SalemMenuItem]
-public class MenuItem
-{
-    public static SalemMenuButton menuButtonName = new()
-    {
-        Label = "Witchcraft",
-        Icon = FromResources.LoadSprite("Witchcraft.Resources.Icon.png"),
-        OnClick = OpenDirectory
-    };
-
-    private static void OpenDirectory()
-    {
-        if (Environment.OSVersion.Platform is PlatformID.MacOSX or PlatformID.Unix)
-            System.Diagnostics.Process.Start("open", $"\"{Witchcraft.ModPath}\""); //code stolen from jan who stole from tuba
-        else
-            Application.OpenURL($"file://{Witchcraft.ModPath}");
     }
 }
