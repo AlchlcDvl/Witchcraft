@@ -25,9 +25,7 @@ public static class StringUtils
         return name;
     }
 
-    /// <summary>
-    /// Wraps the text around a certain length to avoid text overflow out of the screen.
-    /// </summary>
+    /// <summary>Wraps the text around a certain length to avoid text overflow out of the screen.</summary>
     /// <param name="text">The text to be wrapped.</param>
     /// <param name="width">The width of the wrap.</param>
     /// <param name="overflow">Decides if words can go beyond the width if the character limit is reached before the word ends. If <see langword="false"/>, the word is added into the next line instead.</param>
@@ -97,9 +95,7 @@ public static class StringUtils
         }
     }
 
-    /// <summary>
-    /// Wraps the texts around a certain length to avoid text overflow out of the screen. Each element is wrapped individually and added as a new line to the end result.
-    /// </summary>
+    /// <summary>Wraps the texts around a certain length to avoid text overflow out of the screen. Each element is wrapped individually and added as a new line to the end result.</summary>
     /// <param name="texts">The texts to be wrapped.</param>
     /// <param name="width">The width of the wrap.</param>
     /// <param name="overflow">Decides if words can go beyond the width if the character limit is reached before the word ends. If <see langword="false"/>, the word is added into the next line instead.</param>
@@ -111,9 +107,7 @@ public static class StringUtils
         return result;
     }
 
-    /// <summary>
-    /// Returns <paramref name="color"/> as a hexadecimal string in the format "RRGGBBAA".
-    /// </summary>
+    /// <summary>Returns <paramref name="color"/> as a hexadecimal string in the format "RRGGBBAA".</summary>
     /// <param name="color">The color to be converted.</param>
     /// <returns>Hexadecimal string representing the color.</returns>
     /// <remarks>https://docs.unity3d.com/ScriptReference/ColorUtility.ToHtmlStringRGBA.html.</remarks>
