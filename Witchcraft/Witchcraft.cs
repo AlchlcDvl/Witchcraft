@@ -17,6 +17,8 @@ public class Witchcraft
             Directory.CreateDirectory(ModPath);
 
         _ = Register("Witchcraft", Assembly.GetExecutingAssembly());
+        Patches.Logs = string.Empty;
+        Patches.SaveLogs();
         Logging.Log("Magic is brewing!");
     }
 

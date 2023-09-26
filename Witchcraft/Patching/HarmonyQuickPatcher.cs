@@ -27,7 +27,7 @@ public static class HarmonyQuickPatcher
                     switch (harmonyAttribute.PatchType)
                     {
                         case HarmonyPatchType.Prefix:
-                            Pseudo.Patch(targetMethod, prefix: harmonyMethod);
+                            Pseudo.Patch(targetMethod, harmonyMethod);
                             break;
 
                         case HarmonyPatchType.Postfix:

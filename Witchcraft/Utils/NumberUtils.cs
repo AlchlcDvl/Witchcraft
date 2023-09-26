@@ -66,41 +66,4 @@ public static class NumberUtils
     /// <param name="text">The maximum limit.</param>
     /// <returns><see langword="true"/> if the value parameter is null or string.Empty, or if value consists exclusively of white-space characters.</returns>
     public static bool IsNullEmptyOrWhiteSpace(string text) => text is null or "" || text.All(x => x == ' ') || text.Length == 0 || string.IsNullOrWhiteSpace(text);
-
-    /// <summary>Saves text within the mod folder of Witchcraft.</summary>
-    /// <param name="fileName">The name of the file being saved.</param>
-    /// <param name="textToSave">The text to be saved.</param>
-    /// <param name="overrideText">Toggles whether the existing text is overriden or not.</param>
-    public static void SaveText(string fileName, string textToSave, bool overrideText = true)
-    {
-        try
-        {
-            var text = Path.Combine(Witchcraft.ModPath, $"{fileName}-temp");
-            var text2 = Path.Combine(Witchcraft.ModPath, fileName);
-            var toOverride = overrideText ? string.Empty : ReadText(fileName);
-            File.WriteAllText(text, toOverride + textToSave);
-            File.Delete(text2);
-            File.Move(text, text2);
-        }
-        catch
-        {
-            Logging.Log($"Unable to save {textToSave} to {fileName}");
-        }
-    }
-
-    /// <summary>Reads the text from the given file name within Witchcraft's mod folder.</summary>
-    /// <param name="fileName">The name of the file being read.</param>
-    /// <returns>A string that was read from the file.</returns>
-    public static string ReadText(string fileName)
-    {
-        try
-        {
-            return File.ReadAllText(Path.Combine(Witchcraft.ModPath, fileName));
-        }
-        catch
-        {
-            Logging.Log($"Error Loading {fileName}");
-            return string.Empty;
-        }
-    }
 }

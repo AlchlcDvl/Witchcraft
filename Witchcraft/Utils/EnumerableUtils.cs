@@ -18,8 +18,7 @@ public static class EnumerableUtils
     /// <typeparam name="TKey">The key.</typeparam>
     /// <typeparam name="TValue">The value.</typeparam>
     /// <returns>The value associated with the specified key. If it fails, it will return the supplied value instead and adds the failed key and new value into the dictionary.</returns>
-    public static TValue? GetOrCompute<TKey, TValue>(this IDictionary<TKey, TValue> dict, TKey key, Func<TValue> supplier)
-        where TKey : notnull
+    public static TValue? GetOrCompute<TKey, TValue>(this IDictionary<TKey, TValue> dict, TKey key, Func<TValue> supplier) where TKey : notnull
     {
         if (!dict.ContainsKey(key))
             return dict[key] = supplier();
@@ -103,7 +102,7 @@ public static class EnumerableUtils
         return result;
     }
 
-    /// <summary>Replaces the first instance of <paramref name="item1"/> in <paramref name="list"/> with <paramref name="item2"/>.</summary>
+    /// <summary>Replaces an instance of <paramref name="item1"/> in <paramref name="list"/> with <paramref name="item2"/>.</summary>
     /// <param name="list">The <see cref="List{T}"/> that needs to be shuffled.</param>
     /// <param name="item1">The element that needs to be replaced.</param>
     /// <param name="item2">The element that <paramref name="item1"/> needs to be replaced with.</param>

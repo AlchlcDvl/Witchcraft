@@ -7,8 +7,7 @@ public class QuickPostfixAttribute : QuickHarmonyAttribute
     /// <param name="targetType">The <see cref="Type"/> being patched.</param>
     /// <param name="methodName"><paramref name="targetType"/>'s method that's being patched.</param>
     /// <param name="priority">The patch's priority within Harmony.</param>
-    public QuickPostfixAttribute(Type targetType, string methodName, int priority = HarmonyLib.Priority.Normal)
-        : base(targetType, methodName, HarmonyPatchType.Postfix, priority)
+    public QuickPostfixAttribute(Type targetType, string methodName, int priority = HarmonyLib.Priority.Normal) : base(targetType, methodName, HarmonyPatchType.Postfix, priority)
     {
     }
 }
