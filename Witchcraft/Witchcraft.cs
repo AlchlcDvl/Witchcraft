@@ -5,7 +5,6 @@ namespace Witchcraft;
 public class Witchcraft
 {
     public static readonly Dictionary<string, Assembly> Registered = new();
-
     public static string ModPath => Path.Combine(Directory.GetCurrentDirectory(), "SalemModLoader", "ModFolders", "Witchcraft");
 
     /// <summary>The start function for Witchcraft.</summary>
@@ -15,7 +14,7 @@ public class Witchcraft
             Directory.CreateDirectory(ModPath);
 
         _ = Register("Witchcraft", Assembly.GetExecutingAssembly());
-        Console.Write("Magic is brewing!");
+        Console.WriteLine("Magic is brewing!");
     }
 
     /// <summary>Registers and patches methods from <paramref name="assembly"/>.</summary>
@@ -30,7 +29,7 @@ public class Witchcraft
             return false;
         }
 
-        HarmonyQuickPatcher.ApplyHarmonyPatches(assembly, modName);
+        HarmonyQuickPatcher.ApplyHarmonyPatches(modName, assembly);
         return Registered.TryAdd(modName, assembly);
     }
 }
