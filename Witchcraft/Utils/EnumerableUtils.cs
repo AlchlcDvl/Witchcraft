@@ -1,4 +1,4 @@
-namespace Witchcraft.Extensions;
+namespace Witchcraft.Utils;
 
 /// <summary>A class for handling data and elements of <see cref="IEnumerable{T}"/> and <see cref="Dictionary{T, T}"/>.</summary>
 public static class EnumerableUtils

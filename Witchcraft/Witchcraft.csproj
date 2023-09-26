@@ -24,9 +24,6 @@
         <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
-        <EmbedUntrackedSources>true</EmbedUntrackedSources>
-        <IncludeSourceRevisionInInformationalVersion>false</IncludeSourceRevisionInInformationalVersion>
-        <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
     </PropertyGroup>
 
     <ItemGroup>
@@ -67,6 +64,6 @@
     </PropertyGroup>
 
     <Target Name="Copy" AfterTargets="Build">
-        <Copy SourceFiles="$(TargetPath)" DestinationFolder="C:/Program Files (x86)/Steam/steamapps/common/Town of Salem 2/SalemModLoader/Mods/" UseSymboliclinksIfPossible="true"></Copy>
+        <Copy SourceFiles="$(TargetPath)" DestinationFolder="C:/Program Files (x86)/Steam/steamapps/common/Town of Salem 2/SalemModLoader/Mods/"></Copy>
     </Target>
 </Project>
