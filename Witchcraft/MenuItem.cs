@@ -1,7 +1,7 @@
 namespace Witchcraft;
 
-[SalemMenuItem]
 /// <summary>A class for mod's meu item.</summary>
+[SalemMenuItem]
 public class MenuItem
 {
     /// <summary>The menu button.</summary>

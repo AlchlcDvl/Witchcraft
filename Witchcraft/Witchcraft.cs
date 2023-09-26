@@ -1,10 +1,13 @@
 namespace Witchcraft;
 
+/// <summary>Witchcraft's main class.</summary>
 [SalemMod]
-/// <summary>Witch's main class.</summary>
 public class Witchcraft
 {
+    /// <summary>All mods and thier assemblies that are registered by Witchcraft.</summary>
     public static readonly Dictionary<string, Assembly> Registered = new();
+
+    /// <summary>Gets Witchcraft's mod path.</summary>
     public static string ModPath => Path.Combine(Directory.GetCurrentDirectory(), "SalemModLoader", "ModFolders", "Witchcraft");
 
     /// <summary>The start function for Witchcraft.</summary>
@@ -14,7 +17,7 @@ public class Witchcraft
             Directory.CreateDirectory(ModPath);
 
         _ = Register("Witchcraft", Assembly.GetExecutingAssembly());
-        Console.WriteLine("Magic is brewing!");
+        Logging.Log("Magic is brewing!");
     }
 
     /// <summary>Registers and patches methods from <paramref name="assembly"/>.</summary>
@@ -25,7 +28,7 @@ public class Witchcraft
     {
         if (Registered.ContainsKey(modName))
         {
-            Console.WriteLine($"Types in {modName} are already registered");
+            Logging.Log($"Types in {modName} are already registered");
             return false;
         }
 

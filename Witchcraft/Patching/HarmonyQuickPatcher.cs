@@ -22,7 +22,7 @@ public static class HarmonyQuickPatcher
                     var harmonyAttribute = method.GetCustomAttribute<QuickHarmonyAttribute>()!;
                     var harmonyMethod = new HarmonyMethod(method, priority: harmonyAttribute.Priority);
                     var targetMethod = (MethodBase)AccessTools.Method(harmonyAttribute.TargetType, harmonyAttribute.MethodName);
-                    Console.WriteLine($"Quick Patching => {targetMethod.Name} ({harmonyAttribute.TargetType}) from {modName}");
+                    Logging.Log($"Quick Patching => {targetMethod.Name} ({harmonyAttribute.TargetType}) from {modName}");
 
                     switch (harmonyAttribute.PatchType)
                     {

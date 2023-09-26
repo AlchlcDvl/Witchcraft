@@ -9,7 +9,7 @@ public static class NumberUtils
     /// <param name="max">The maximum reference.</param>
     /// <param name="minInclusive">Dictates if <paramref name="min"/> is included in the range for comparison.</param>
     /// <param name="maxInclusive">Dictates if <paramref name="max"/> is included in the range for comparison.</param>
-    /// <returns>The closest possible <see cref="DeadBody"/> based on the given parameters.</returns>
+    /// <returns><see langword="true"/> if <paramref name="num"/> happens to be within the range formed by <paramref name="min"/> and <paramref name="max"/>.</returns>
     public static bool IsInRange(float num, float min, float max, bool minInclusive = false, bool maxInclusive = false)
     {
         if (minInclusive && maxInclusive)
@@ -22,9 +22,7 @@ public static class NumberUtils
             return num > min && num < max;
     }
 
-    /// <summary>
-    /// Checks if a random number falls under the given probability.
-    /// </summary>
+    /// <summary>Checks if a random number falls under the given probability.</summary>
     /// <param name="probability">The max probability limit.</param>
     /// <returns><see langword="false"/> if the random number was above <paramref name="probability"/> or <paramref name="probability"/> is 0; <see langword="true"/> if the random number was equal to or below <paramref name="probability"/> or <paramref name="probability"/> is 100.</returns>
     public static bool Check(int probability)
@@ -86,7 +84,7 @@ public static class NumberUtils
         }
         catch
         {
-            Console.WriteLine($"Unable to save {textToSave} to {fileName}");
+            Logging.Log($"Unable to save {textToSave} to {fileName}");
         }
     }
 
@@ -101,7 +99,7 @@ public static class NumberUtils
         }
         catch
         {
-            Console.WriteLine($"Error Loading {fileName}");
+            Logging.Log($"Error Loading {fileName}");
             return string.Empty;
         }
     }
