@@ -29,8 +29,6 @@ To quote the "Salem Mod Loader" [Discord](https://discord.gg/AdpRqzstfj).
 To quote a developer in the official Town of Salem 2 [Discord](https://discord.gg/townofsalem2). [Message Link](https://discord.com/channels/1110363758792036352/1111801081060655154/1112876123852906617)
 > We plan to have official mod support, but having a good base is important. A new player won't have a mod preinstalled.
 
-</p>
-
 ___
 
 ### Credits
