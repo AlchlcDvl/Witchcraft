@@ -141,19 +141,15 @@ public static class EnumerableUtils
         return contains;
     }
 
-    /// <summary>Finds a random element from <paramref name="input"/>.</summary>
-    /// <param name="input">The <see cref="List{T}"/> to find a random element from.</param>
+    /// <summary>Returns a random <typeparamref name="T"/> from the <paramref name="input"/>..</summary>
+    /// <param name="input">The <see cref="IEnumerable{T}"/> to find a random element from.</param>
     /// <param name="defaultVal">The <see langword="default"/> value to return if the method fails.</param>
     /// <typeparam name="T">The element type of <paramref name="input"/>.</typeparam>
     /// <returns>A random element from <paramref name="input"/>.</returns>
     public static T? Random<T>(this IEnumerable<T> input, T defaultVal = default!)
     {
-        var list = (input as IList<T>) ?? input.ToList();
-
-        if (list.Count != 0)
-            return list[URandom.Range(0, list.Count)];
-
-        return defaultVal;
+        var list = input as IList<T> ?? input.ToList();
+        return list.Count == 0 ? defaultVal : list[URandom.Range(0, list.Count)];
     }
 
     /// <summary>Finds a random element from <paramref name="input"/>.</summary>
@@ -172,4 +168,16 @@ public static class EnumerableUtils
     /// <exception cref="ArgumentNullException"><paramref name="dict"/> was <see langword="null"/>.</exception>
     /// <exception cref="InvalidOperationException">Operation was not possible.</exception>
     public static void ForEach<TKey, TValue>(this IDictionary<TKey, TValue> dict, Action<TKey, TValue> action) => dict.ToList().ForEach(pair => action(pair.Key, pair.Value));
+
+    /// <summary>Returns a random <typeparamref name="T"/> from the <paramref name="input"/> using <paramref name="random"/>.</summary>
+    /// <param name="input">The input enumerable to take the item from.</param>
+    /// <param name="random">The <see cref="System.Random"/> to get the random number from.</param>
+    /// <param name="defaultVal">The <see langword="default"/> value to return if the method fails.</param>
+    /// <typeparam name="T">The element type of <paramref name="input"/>.</typeparam>
+    /// <returns>A random element from <paramref name="input"/>.</returns>
+    public static T? Random<T>(this IEnumerable<T> input, SRandom random, T defaultVal = default!)
+    {
+        var list = input as IList<T> ?? input.ToList();
+        return list.Count == 0 ? defaultVal : list[random.Next(0, list.Count)];
+    }
 }

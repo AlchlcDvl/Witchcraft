@@ -1,5 +1,3 @@
-using System.Text;
-
 namespace Witchcraft.Utils;
 
 /// <summary>A class for dealing with <see cref="string"/>s.</summary>
@@ -115,4 +113,21 @@ public static class StringUtils
 
     /// <inheritdoc cref="ToHtmlStringRGBA(Color32)"/>
     public static string ToHtmlStringRGBA(this Color color) => ((Color32)color).ToHtmlStringRGBA();
+
+    /// <summary>Returns a new string repeated N times. If the number of times is 0 this returns the original string.</summary>
+    /// <param name="str">string to repeat.</param>
+    /// <param name="times">number of times to repeat the string.</param>
+    /// <returns>If times is greater than 0, a new repeated string, otherwise the original string.</returns>
+    public static string Repeat(this string str, int times)
+    {
+        if (times < 0)
+            return string.Empty;
+
+        var append = str;
+
+        for (var i = 0; i < times; i++)
+            str += append;
+
+        return str;
+    }
 }
