@@ -19,7 +19,7 @@ public static class HarmonyQuickPatcher
                 .Where(t => t.GetCustomAttribute<QuickHarmonyAttribute>() != null)
                 .ForEach(method =>
                 {
-                    var harmonyAttribute = method.GetCustomAttribute<QuickHarmonyAttribute>()!;
+                    var harmonyAttribute = method.GetCustomAttribute<QuickHarmonyAttribute>();
                     var harmonyMethod = new HarmonyMethod(method, priority: harmonyAttribute.Priority);
                     var targetMethod = (MethodBase)AccessTools.Method(harmonyAttribute.TargetType, harmonyAttribute.MethodName);
                     Logging.Log($"Quick Patching => {harmonyAttribute.MethodName} ({harmonyAttribute.TargetType}) from {modName}", "Debug");
@@ -35,7 +35,7 @@ public static class HarmonyQuickPatcher
                             break;
 
                         default:
-                            throw new ArgumentOutOfRangeException(nameof(method));
+                            throw new ArgumentOutOfRangeException($"{modName} patching is wrong at {harmonyAttribute.MethodName} ({harmonyAttribute.TargetType})");
                     }
                 }));
     }

@@ -22,7 +22,7 @@ public class Witchcraft
 
         _ = Register("Witchcraft", Assembly.GetExecutingAssembly());
         Patches.Logs = string.Empty;
-        Logging.Log("Magic is brewing!");
+        Logging.Log("Magic is brewing!", "Info");
     }
 
     /// <summary>Registers and patches methods from <paramref name="assembly"/>.</summary>
@@ -33,7 +33,7 @@ public class Witchcraft
     {
         if (Registered.ContainsKey(modName))
         {
-            Logging.Log($"Types in {modName} are already registered");
+            Logging.Log($"Types in {modName} are already registered", "Error");
             return false;
         }
 

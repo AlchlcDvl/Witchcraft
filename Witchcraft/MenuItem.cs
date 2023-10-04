@@ -8,7 +8,7 @@ public class MenuItem
     public static SalemMenuButton menuButtonName = new()
     {
         Label = "Witchcraft",
-        Icon = FromResources.LoadSprite("Witchcraft.Resources.Icon.png"),
+        Icon = FromResources.LoadSprite("Witchcraft.Resources.Thumbnail.png"),
         OnClick = OpenDirectory
     };
 
