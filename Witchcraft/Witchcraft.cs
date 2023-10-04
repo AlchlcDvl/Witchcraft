@@ -1,7 +1,3 @@
-global using System;
-global using System.Collections.Generic;
-global using System.IO;
-global using System.Linq;
 namespace Witchcraft;
 
 /// <summary>Witchcraft's main class.</summary>
