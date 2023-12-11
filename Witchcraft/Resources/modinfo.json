@@ -1,0 +1,20 @@
+{
+  "HarmonyId": "alchlcsystm.witchcraft",
+  "DisplayName": "Witchcraft",
+  "Authors": [ "AlchlcSystm" ],
+  "Description": "A modding tool for developers!",
+  "Version": "1.0.0",
+  "Settings":
+  {
+    "CheckboxSettings":
+    [
+      {
+        "Name": "Enable Debugging",
+        "SettingID": "cursed.debug",
+        "Description": "Toggles whether the mod's logs will be displayed (keep it off, only turn on if a mod dev tells you to)",
+        "DefaultValue": false,
+        "AvailableInGame": true
+      }
+    ]
+  }
+}

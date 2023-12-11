@@ -24,7 +24,7 @@ public static class GeneralUtils
         }
         catch
         {
-            Logging.Log($"Unable to save {textToSave} to {fileName}", "Error");
+            Logging.LogError($"Unable to save to {fileName}");
         }
     }
 
@@ -43,7 +43,7 @@ public static class GeneralUtils
         }
         catch
         {
-            Logging.Log($"Error Loading {fileName}", "Error");
+            Logging.LogError($"Error Loading {fileName}");
             return string.Empty;
         }
     }

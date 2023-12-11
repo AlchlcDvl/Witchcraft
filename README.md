@@ -34,5 +34,3 @@ ___
 ### Credits
 [Curtbot9000](https://github.com/Curtbot9000) - Made SalemModLoader.
 <p style="font-size:10px; margin-top: -2px;">Join <b>their</b> <a href="https://discord.gg/AdpRqzstfj">Discord server</a>!</p>
-
-[VentFramework](https://github.com/ImaMapleTree/VentFramework) - For the idea and code basis of quick patching

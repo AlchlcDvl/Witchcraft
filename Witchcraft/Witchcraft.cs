@@ -2,13 +2,14 @@ namespace Witchcraft;
 
 /// <summary>Witchcraft's main class.</summary>
 [SalemMod]
+[SalemMenuItem]
 public class Witchcraft
 {
-    /// <summary>All mods and thier assemblies that are registered by Witchcraft.</summary>
-    public static readonly Dictionary<string, Assembly> Registered = new();
-
     /// <summary>Gets Witchcraft's mod path.</summary>
-    public static string ModPath => Path.Combine(Directory.GetCurrentDirectory(), "SalemModLoader", "ModFolders", "Witchcraft");
+    public static string ModPath => Path.Combine(ModFoldersPath, "Witchcraft");
+
+    /// <summary>Gets the mod folder path used by SML.</summary>
+    public static string ModFoldersPath => Path.Combine(Path.GetDirectoryName(Application.dataPath), "SalemModLoader", "ModFolders");
 
     /// <summary>The start function for Witchcraft.</summary>
     public void Start()
@@ -16,24 +17,25 @@ public class Witchcraft
         if (!Directory.Exists(ModPath))
             Directory.CreateDirectory(ModPath);
 
-        _ = Register("Witchcraft", Assembly.GetExecutingAssembly());
-        Patches.Logs = string.Empty;
-        Logging.Log("Magic is brewing!", "Info");
+        Logging.Init();
+        Logging.LogMessage("Magic is brewing!", true);
     }
 
-    /// <summary>Registers and patches methods from <paramref name="assembly"/>.</summary>
-    /// <param name="modName">The name of the mod.</param>
-    /// <param name="assembly">The <see cref="Assembly"/> that <paramref name="modName"/> is attached to.</param>
-    /// <returns><see langword="true"/> if <paramref name="modName"/> was succesfully registered.</returns>
-    public static bool Register(string modName, Assembly assembly)
+    /// <summary>The menu button.</summary>
+    public static SalemMenuButton menuButtonName = new()
     {
-        if (Registered.ContainsKey(modName))
-        {
-            Logging.Log($"Types in {modName} are already registered", "Error");
-            return false;
-        }
+        Label = "Witchcraft",
+        Icon = FromResources.LoadSprite("Witchcraft.Resources.Thumbnail.png"),
+        OnClick = OpenDirectory
+    };
 
-        HarmonyQuickPatcher.ApplyHarmonyPatches(modName, assembly);
-        return Registered.TryAdd(modName, assembly);
+    /// <summary>Opens Witchcraft's mod folder.</summary>
+    public static void OpenDirectory()
+    {
+        // code stolen from jan who stole from tuba
+        if (Environment.OSVersion.Platform is PlatformID.MacOSX or PlatformID.Unix)
+            System.Diagnostics.Process.Start("open", $"\"{ModPath}\"");
+        else
+            Application.OpenURL($"file://{ModPath}");
     }
 }

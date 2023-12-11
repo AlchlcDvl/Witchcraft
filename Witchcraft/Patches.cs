@@ -5,14 +5,13 @@ namespace Witchcraft;
 /// <summary>A class containing Witchcraft patches.</summary>
 public static class Patches
 {
-    /// <summary>Saved logs.</summary>
-    public static string? Logs;
-
-    /// <summary>Saves logs to the Witchcraft mod folder.</summary>
-    [QuickPrefix(typeof(ApplicationController), nameof(ApplicationController.QuitGame))]
-    public static void SaveLogs()
+    [HarmonyPatch(typeof(ApplicationController), nameof(ApplicationController.QuitGame))]
+    private static class ExitGamePatch
     {
-        GeneralUtils.SaveText("SavedLogs", Logs!);
-        Logs = string.Empty;
+        public static void Prefix()
+        {
+            Logging.LogMessage("Patching ApplicationController.QuitGame");
+            Logging.SaveLogs();
+        }
     }
 }

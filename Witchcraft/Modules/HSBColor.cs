@@ -226,7 +226,7 @@ public struct HSBColor
     /// <returns>A <see cref="float"/> between <paramref name="min"/> and <paramref name="max"/> based on the <see cref="Time"/> that has passed.</returns>
     public static float PingPongReverse(float min, float max, float mul) => max - Mathf.PingPong(Time.time * mul, max - min);
 
-    /// <summary>A test function to see if this actually works.</summary>
+    /*/// <summary>A test function to see if this actually works.</summary>
     public static void Test()
     {
         var color = new HSBColor(Color.red);
@@ -248,5 +248,5 @@ public struct HSBColor
         Debug.Log("0.4, 1f, 0.84: " + color);
 
         Debug.Log("164,82,84   .... 0.643137f, 0.321568f, 0.329411f :" + ToColor(new(new(0.643137f, 0.321568f, 0.329411f))));
-    }
+    }*/
 }
