@@ -10,7 +10,7 @@
     [
       {
         "Name": "Enable Debugging",
-        "SettingID": "cursed.debug",
+        "SettingID": "witchcraft.debug",
         "Description": "Toggles whether the mod's logs will be displayed (keep it off, only turn on if a mod dev tells you to)",
         "DefaultValue": false,
         "AvailableInGame": true

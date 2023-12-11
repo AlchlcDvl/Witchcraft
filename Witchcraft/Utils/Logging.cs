@@ -27,7 +27,7 @@ public static class Logging
     /// <returns>A new <see cref="ManualLogSource"/> used for logging messages.</returns>
     public static ManualLogSource Init() => Init(Assembly.GetCallingAssembly().GetName().Name);
 
-    /// <summary>Logs messages from <paramref name="modName"/>.</summary>
+    /// <summary>Logs messages for <paramref name="modName"/>.</summary>
     /// <param name="modName">The name of the mod.</param>
     /// <param name="message">The message being logged.</param>
     /// <param name="level">The level of the message.</param>
@@ -46,7 +46,7 @@ public static class Logging
         }
     }
 
-    /// <summary>Logs messages.</summary>
+    /// <summary>Logs messages for the mod that calls it.</summary>
     /// <param name="message">The message being logged.</param>
     /// <param name="level">The level of the message.</param>
     /// <param name="logIt">An override for whether you want to see the message regardless of the settings.</param>
