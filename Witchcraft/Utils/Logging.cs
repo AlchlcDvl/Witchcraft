@@ -11,29 +11,37 @@ public static class Logging
     /// <summary>A dictionary containing the saved logs as string for registered mods.</summary>
     private static readonly Dictionary<string, string> SavedLogs = new();
 
-    /// <summary>Creates a logger that displays logs from <paramref name="modName"/>.</summary>
+    /// <summary>A dictionary containing the saved keys as string for registered mods and their assemblies.</summary>
+    private static readonly Dictionary<string, string> SavedAssemblies = new();
+
+    /// <summary>Creates a logger that displays logs from <paramref name="modName"/>. If <paramref name="modName"/> is null, then the the logger is registered under the assembly's name.</summary>
     /// <param name="modName">The name of the mod.</param>
     /// <returns>A new <see cref="ManualLogSource"/> used for logging <paramref name="modName"/>'s messages.</returns>
-    public static ManualLogSource Init(string modName)
+    public static ManualLogSource Init(string modName = null!)
     {
+        var assembly = Assembly.GetCallingAssembly().GetName().Name;
+        modName ??= assembly;
         var key = modName.Replace(" ", string.Empty);
         var log = BepInEx.Logging.Logger.CreateLogSource(key);
         ModLoggers[key] = log;
         SavedLogs[key] = string.Empty;
+        SavedAssemblies[assembly] = key;
         return log;
     }
 
-    /// <summary>Creates a logger that displays logs.</summary>
-    /// <returns>A new <see cref="ManualLogSource"/> used for logging messages.</returns>
-    public static ManualLogSource Init() => Init(Assembly.GetCallingAssembly().GetName().Name);
-
     /// <summary>Logs messages for <paramref name="modName"/>.</summary>
-    /// <param name="modName">The name of the mod.</param>
     /// <param name="message">The message being logged.</param>
     /// <param name="level">The level of the message.</param>
+    /// <param name="modName">The name of the mod.</param>
     /// <param name="logIt">An override for whether you want to see the message regardless of the settings.</param>
-    private static void LogSomething(string modName, object message, LogLevel level, bool logIt = false)
+    private static void LogSomething(object message, LogLevel level, string modName = null!, bool logIt = false)
     {
+        var assembly = Assembly.GetCallingAssembly().GetName().Name;
+
+        if (modName == null)
+            SavedAssemblies.TryGetValue(assembly, out modName);
+
+        modName ??= assembly;
         var key = modName.Replace(" ", string.Empty);
         var log = ModLoggers.TryGetValue(key, out var log1) ? log1 : Init(key);
         logIt = logIt || Constants.Debug;
@@ -50,31 +58,31 @@ public static class Logging
     /// <param name="message">The message being logged.</param>
     /// <param name="level">The level of the message.</param>
     /// <param name="logIt">An override for whether you want to see the message regardless of the settings.</param>
-    private static void LogSomething(object message, LogLevel level, bool logIt = false) => LogSomething(Assembly.GetCallingAssembly().GetName().Name, message, level, logIt);
+    private static void LogSomething(object message, LogLevel level, bool logIt = false) => LogSomething(message, level, null!, logIt);
 
-    /// <inheritdoc cref="LogSomething(string, object, LogLevel, bool)"/>
-    public static void LogError(string modName, object message) => LogSomething(modName, message, LogLevel.Error, true);
+    /// <inheritdoc cref="LogSomething(object, LogLevel, string, bool)"/>
+    public static void LogError(string modName, object message) => LogSomething(message, LogLevel.Error, modName, true);
 
-    /// <inheritdoc cref="LogSomething(string, object, LogLevel, bool)"/>
-    public static void LogMessage(string modName, object message, bool logIt = false) => LogSomething(modName, message, LogLevel.Message, logIt);
+    /// <inheritdoc cref="LogSomething(object, LogLevel, string, bool)"/>
+    public static void LogMessage(string modName, object message, bool logIt = false) => LogSomething(message, LogLevel.Message, modName, logIt);
 
-    /// <inheritdoc cref="LogSomething(string, object, LogLevel, bool)"/>
-    public static void LogFatal(string modName, object message) => LogSomething(modName, message, LogLevel.Fatal, true);
+    /// <inheritdoc cref="LogSomething(object, LogLevel, string, bool)"/>
+    public static void LogFatal(string modName, object message) => LogSomething(message, LogLevel.Fatal, modName, true);
 
-    /// <inheritdoc cref="LogSomething(string, object, LogLevel, bool)"/>
-    public static void LogInfo(string modName, object message, bool logIt = false) => LogSomething(modName, message, LogLevel.Info, logIt);
+    /// <inheritdoc cref="LogSomething(object, LogLevel, string, bool)"/>
+    public static void LogInfo(string modName, object message, bool logIt = false) => LogSomething(message, LogLevel.Info, modName, logIt);
 
-    /// <inheritdoc cref="LogSomething(string, object, LogLevel, bool)"/>
-    public static void LogWarning(string modName, object message, bool logIt = false) => LogSomething(modName, message, LogLevel.Warning, logIt);
+    /// <inheritdoc cref="LogSomething(object, LogLevel, string, bool)"/>
+    public static void LogWarning(string modName, object message, bool logIt = false) => LogSomething(message, LogLevel.Warning, modName, logIt);
 
-    /// <inheritdoc cref="LogSomething(string, object, LogLevel, bool)"/>
-    public static void LogDebug(string modName, object message, bool logIt = false) => LogSomething(modName, message, LogLevel.Debug, logIt);
+    /// <inheritdoc cref="LogSomething(object, LogLevel, string, bool)"/>
+    public static void LogDebug(string modName, object message, bool logIt = false) => LogSomething(message, LogLevel.Debug, modName, logIt);
 
-    /// <inheritdoc cref="LogSomething(string, object, LogLevel, bool)"/>
-    public static void LogNone(string modName, object message, bool logIt = false) => LogSomething(modName, message, LogLevel.None, logIt);
+    /// <inheritdoc cref="LogSomething(object, LogLevel, string, bool)"/>
+    public static void LogNone(string modName, object message, bool logIt = false) => LogSomething(message, LogLevel.None, modName, logIt);
 
-    /// <inheritdoc cref="LogSomething(string, object, LogLevel, bool)"/>
-    public static void LogAll(string modName, object message, bool logIt = false) => LogSomething(modName, message, LogLevel.All, logIt);
+    /// <inheritdoc cref="LogSomething(object, LogLevel, string, bool)"/>
+    public static void LogAll(string modName, object message, bool logIt = false) => LogSomething(message, LogLevel.All, modName, logIt);
 
     /// <inheritdoc cref="LogSomething(object, LogLevel, bool)"/>
     public static void LogError(object message) => LogSomething(message, LogLevel.Error, true);

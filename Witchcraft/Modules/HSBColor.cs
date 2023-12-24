@@ -226,6 +226,55 @@ public struct HSBColor
     /// <returns>A <see cref="float"/> between <paramref name="min"/> and <paramref name="max"/> based on the <see cref="Time"/> that has passed.</returns>
     public static float PingPongReverse(float min, float max, float mul) => max - Mathf.PingPong(Time.time * mul, max - min);
 
+    /// <summary>Parses the input text to an <see cref="HSBColor"/>.</summary>
+    /// <param name="input">The input text.</param>
+    /// <returns>An <see cref="HSBColor"/> based on the input.</returns>
+    public static HSBColor Parse(string input)
+    {
+        input = input.Replace(" ", string.Empty);
+        var parts = input.Split(';');
+        var parts2 = new List<float>();
+
+        foreach (var part in parts)
+        {
+            var parts3 = part.Split(',');
+
+            if (parts3.Length == 1)
+                parts2.Add(float.Parse(parts3[0]));
+            else if (parts3.Length == 3)
+                parts2.Add(PingPong(float.Parse(parts3[0]), float.Parse(parts3[1]), float.Parse(parts3[2])));
+            else if (parts3.Length == 4)
+            {
+                var min = float.Parse(parts3[0]);
+                var max = float.Parse(parts3[1]);
+                var mul = float.Parse(parts3[2]);
+                parts2.Add(bool.Parse(parts3[3]) ? PingPongReverse(min, max, mul) : PingPong(min, max, mul));
+            }
+            else
+                throw new ArgumentOutOfRangeException(input);
+        }
+
+        return new(parts2[0], parts2[1], parts2[2]);
+    }
+
+    /// <summary>Tries to parse the input text to an <see cref="HSBColor"/>.</summary>
+    /// <param name="input">The input text.</param>
+    /// <param name="color">The resulting <see cref="HSBColor"/>.</param>
+    /// <returns>true if the parse was successful; otherwise false.</returns>
+    public static bool TryParse(string input, out HSBColor color)
+    {
+        try
+        {
+            color = Parse(input);
+            return true;
+        }
+        catch
+        {
+            color = default;
+            return false;
+        }
+    }
+
     /*/// <summary>A test function to see if this actually works.</summary>
     public static void Test()
     {

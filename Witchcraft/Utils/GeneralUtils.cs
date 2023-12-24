@@ -8,13 +8,11 @@ public static class GeneralUtils
     /// <param name="textToSave">The text to be saved.</param>
     /// <param name="overrideText">Toggles whether the existing text is overriden or not.</param>
     /// <param name="path">The path where the text is stored.</param>
-    public static void SaveText(string fileName, string textToSave, bool overrideText = true, string path = "")
+    public static void SaveText(string fileName, string textToSave, bool overrideText = true, string path = null!)
     {
         try
         {
-            if (path == string.Empty)
-                path = Witchcraft.ModPath;
-
+            path ??= Witchcraft.ModPath;
             var text = Path.Combine(path, $"{fileName}-temp");
             var text2 = Path.Combine(path, fileName);
             var toOverride = overrideText ? string.Empty : ReadText(fileName);
@@ -32,14 +30,11 @@ public static class GeneralUtils
     /// <param name="fileName">The name of the file being read.</param>
     /// <returns>A string that was read from the file.</returns>
     /// <param name="path">The path where the text is stored.</param>
-    public static string ReadText(string fileName, string path = "")
+    public static string ReadText(string fileName, string path = null!)
     {
         try
         {
-            if (path == string.Empty)
-                path = Witchcraft.ModPath;
-
-            return File.ReadAllText(Path.Combine(path, fileName));
+            return File.ReadAllText(Path.Combine(path ?? Witchcraft.ModPath, fileName));
         }
         catch
         {
