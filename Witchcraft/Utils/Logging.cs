@@ -12,20 +12,25 @@ public static class Logging
     private static readonly Dictionary<string, string> SavedLogs = new();
 
     /// <summary>A dictionary containing the saved keys as string for registered mods and their assemblies.</summary>
-    private static readonly Dictionary<string, string> SavedAssemblies = new();
+    private static readonly Dictionary<string, string> SavedAssemblyNames = new();
+
+    /// <summary>A dictionary containing the saved keys as string for registered mods and their assemblies.</summary>
+    private static readonly Dictionary<string, Assembly> SavedAssemblies = new();
 
     /// <summary>Creates a logger that displays logs from <paramref name="modName"/>. If <paramref name="modName"/> is null, then the the logger is registered under the assembly's name.</summary>
     /// <param name="modName">The name of the mod.</param>
     /// <returns>A new <see cref="ManualLogSource"/> used for logging <paramref name="modName"/>'s messages.</returns>
     public static ManualLogSource Init(string modName = null!)
     {
-        var assembly = Assembly.GetCallingAssembly().GetName().Name;
-        modName ??= assembly;
+        var assembly = Assembly.GetCallingAssembly();
+        var assemblyName = Assembly.GetCallingAssembly().GetName().Name;
+        modName ??= assemblyName;
         var key = modName.Replace(" ", string.Empty);
         var log = BepInEx.Logging.Logger.CreateLogSource(key);
         ModLoggers[key] = log;
         SavedLogs[key] = string.Empty;
-        SavedAssemblies[assembly] = key;
+        SavedAssemblyNames[assemblyName] = key;
+        SavedAssemblies[assemblyName] = assembly;
         return log;
     }
 
@@ -39,7 +44,7 @@ public static class Logging
         var assembly = Assembly.GetCallingAssembly().GetName().Name;
 
         if (modName == null)
-            SavedAssemblies.TryGetValue(assembly, out modName);
+            SavedAssemblyNames.TryGetValue(assembly, out modName);
 
         modName ??= assembly;
         var key = modName.Replace(" ", string.Empty);

@@ -233,6 +233,10 @@ public struct HSBColor
     {
         input = input.Replace(" ", string.Empty);
         var parts = input.Split(';');
+
+        if (parts.Length is not (3 or 4))
+            throw new ArgumentOutOfRangeException(input);
+
         var parts2 = new List<float>();
 
         foreach (var part in parts)
@@ -241,20 +245,21 @@ public struct HSBColor
 
             if (parts3.Length == 1)
                 parts2.Add(float.Parse(parts3[0]));
-            else if (parts3.Length == 3)
-                parts2.Add(PingPong(float.Parse(parts3[0]), float.Parse(parts3[1]), float.Parse(parts3[2])));
-            else if (parts3.Length == 4)
+            else if (parts3.Length == 2)
+                parts2.Add(URandom.Range(float.Parse(parts3[0]), float.Parse(parts3[1])));
+            else if (parts3.Length is 3 or 4)
             {
                 var min = float.Parse(parts3[0]);
                 var max = float.Parse(parts3[1]);
                 var mul = float.Parse(parts3[2]);
-                parts2.Add(bool.Parse(parts3[3]) ? PingPongReverse(min, max, mul) : PingPong(min, max, mul));
+                var reverse = parts.Length == 4 && bool.Parse(parts3[3]);
+                parts2.Add(reverse ? PingPongReverse(min, max, mul) : PingPong(min, max, mul));
             }
             else
                 throw new ArgumentOutOfRangeException(input);
         }
 
-        return new(parts2[0], parts2[1], parts2[2]);
+        return new(parts2[0], parts2[1], parts2[2], parts2.Count == 4 ? parts2[3] : 1f);
     }
 
     /// <summary>Tries to parse the input text to an <see cref="HSBColor"/>.</summary>

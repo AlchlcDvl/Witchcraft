@@ -117,16 +117,16 @@ public static class EnumerableUtils
         {
             if (all)
             {
-                var pos = 0;
-                var clone = list;
+                var clone = new List<T>(list);
 
                 foreach (var item in clone)
                 {
                     if (Equals(item, item1))
                     {
-                        pos = clone.IndexOf(item);
-                        list.Remove(item);
-                        list.Insert(pos, item2);
+                        var pos = clone.IndexOf(item);
+
+                        if (list.Remove(item))
+                            list.Insert(pos, item2);
                     }
                 }
             }
@@ -179,5 +179,54 @@ public static class EnumerableUtils
     {
         var list = input as IList<T> ?? input.ToList();
         return list.Count == 0 ? defaultVal : list[random.Next(0, list.Count)];
+    }
+
+    /// <summary>Returns a list of lists of type <typeparamref name="T"/> from <paramref name="list"/>, each containing <paramref name="splitCount"/> lists.</summary>
+    /// <param name="list">The input list to split.</param>
+    /// <param name="splitCount">The split limit.</param>
+    /// <typeparam name="T">The element type of <paramref name="list"/>.</typeparam>
+    /// <returns>A list containing split counts of <see cref="List{T}"/>.</returns>
+    public static List<List<T>> Split<T>(this List<T> list, int splitCount)
+    {
+        var result = new List<List<T>>();
+        var temp = new List<T>();
+
+        foreach (var item in list)
+        {
+            temp.Add(item);
+
+            if (temp.Count == splitCount)
+            {
+                result.Add(temp);
+                temp = new();
+            }
+        }
+
+        if (temp.Count > 0)
+            result.Add(temp);
+
+        return result;
+    }
+
+    /// <summary>Finds the index of the first element that satisfies the given condition.</summary>
+    /// <param name="source">The input containing the element.</param>
+    /// <param name="predicate">The condition to look for.</param>
+    /// <typeparam name="T">The element type of <paramref name="source"/>.</typeparam>
+    /// <returns>The index of the first element in <paramref name="source"/> that satisfies <paramref name="predicate"/>.</returns>
+    public static int IndexOf<T>(this IEnumerable<T> source, Func<T, bool> predicate)
+    {
+        if (source == null)
+            throw new ArgumentNullException(nameof(source));
+
+        if (predicate == null)
+            throw new ArgumentNullException(nameof(predicate));
+
+        for (var i = 0; i < source.Count(); i++)
+        {
+            if (predicate(source.ElementAt(i)))
+                return i;
+        }
+
+        return -1;
     }
 }

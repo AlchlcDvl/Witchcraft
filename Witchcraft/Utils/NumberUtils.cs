@@ -61,9 +61,4 @@ public static class NumberUtils
 
     /// <inheritdoc cref="CycleFloat(float, float, float, bool, float)"/>
     public static byte CycleByte(int max, int min, int currentVal, bool increment, int change = 1) => (byte)CycleInt(max, min, currentVal, increment, change);
-
-    /// <summary>Indicates whether a specified string is null, empty, or consists only of white-space characters.</summary>
-    /// <param name="text">The maximum limit.</param>
-    /// <returns><see langword="true"/> if the value parameter is null or string.Empty, or if value consists exclusively of white-space characters.</returns>
-    public static bool IsNullEmptyOrWhiteSpace(string text) => text is null or "" || text.All(x => x == ' ') || text.Length == 0 || string.IsNullOrWhiteSpace(text);
 }

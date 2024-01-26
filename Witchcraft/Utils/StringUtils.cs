@@ -6,6 +6,12 @@ public static class StringUtils
     private const string ASCII = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890!@#$%^&*()|{}[],.<>;':\"-+=*/`~_\\ ⟡☆♡♧♤ø▶❥✔εΔΓικνστυφψΨωχӪζδ♠♥βαµ♣✚Ξρλς§π★ηΛγΣΦΘξ✧¢" +
         "乂⁂¤∮彡个「」人요〖〗ロ米卄王īl【】·ㅇ°◈◆◇◥◤◢◣《》︵︶☆☀☂☹☺♡♩♪♫♬✓☜☞☟☯☃✿❀÷º¿※⁑∞≠";
 
+    /// <summary>An array containing traiditional lowercase english letters.</summary>
+    public static readonly char[] Lowercase = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z' };
+
+    /// <summary>An array containing traiditional uppercase english letters.</summary>
+    public static readonly char[] Uppercase = { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z' };
+
     /// <summary>Creates a string of random characters.</summary>
     /// <param name="maxLength">The length of the randomised string.</param>
     /// <returns>A randomised string.</returns>
@@ -36,7 +42,7 @@ public static class StringUtils
 
         while (startIndex < text.Length)
         {
-            var num = text.IndexOfAny(new char[] { ' ', '\t', '\r' }, startIndex);
+            var num = text.IndexOfAny(new[] { ' ', '\t', '\r' }, startIndex);
 
             if (num != -1)
             {
@@ -129,5 +135,25 @@ public static class StringUtils
             str += append;
 
         return str;
+    }
+
+    /// <summary>Indicates whether a specified string is null, empty, or consists only of white-space characters.</summary>
+    /// <param name="text">The maximum limit.</param>
+    /// <returns><see langword="true"/> if the value parameter is null or string.Empty, or if value consists exclusively of white-space characters.</returns>
+    public static bool IsNullEmptyOrWhiteSpace(string text) => text is null or "" || text.All(x => x == ' ') || text.Length == 0 || string.IsNullOrWhiteSpace(text);
+
+    /// <summary>Adds spaces before uppercase letters.</summary>
+    /// <param name="text">The text to add spaces to.</param>
+    /// <returns>Spaced out <paramref name="text"/>.</returns>
+    public static string AddSpaces(this string text)
+    {
+        Uppercase.ForEach(x =>
+        {
+            var index = text.IndexOf(x);
+
+            if (index > 0)
+                text = text.Insert(index, " ");
+        });
+        return text;
     }
 }
