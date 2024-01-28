@@ -19,6 +19,10 @@ public static class Logging
 
     /// <summary>Creates a logger that displays logs from <paramref name="modName"/>. If <paramref name="modName"/> is null, then the the logger is registered under the assembly's name.</summary>
     /// <param name="modName">The name of the mod.</param>
+    public static void InitVoid(string modName = null!) => Init(modName);
+
+    /// <summary>Creates a logger that displays logs from <paramref name="modName"/>. If <paramref name="modName"/> is null, then the the logger is registered under the assembly's name.</summary>
+    /// <param name="modName">The name of the mod.</param>
     /// <returns>A new <see cref="ManualLogSource"/> used for logging <paramref name="modName"/>'s messages.</returns>
     public static ManualLogSource Init(string modName = null!)
     {
@@ -49,10 +53,10 @@ public static class Logging
         modName ??= assembly;
         var key = modName.Replace(" ", string.Empty);
         var log = ModLoggers.TryGetValue(key, out var log1) ? log1 : Init(key);
-        logIt = logIt || Constants.Debug;
+        message ??= $"message was null";
         message = $"[{DateTime.UtcNow}] {message}";
 
-        if (logIt)
+        if (logIt || Constants.Debug)
         {
             ModLoggers[key].Log(level, message);
             SavedLogs[key] += $"[{level,-7}] {message}\n";

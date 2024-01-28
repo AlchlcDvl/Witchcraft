@@ -12,13 +12,7 @@ public static class GeneralUtils
     {
         try
         {
-            path ??= Witchcraft.ModPath;
-            var text = Path.Combine(path, $"{fileName}-temp");
-            var text2 = Path.Combine(path, fileName);
-            var toOverride = overrideText ? string.Empty : ReadText(fileName);
-            File.WriteAllText(text, toOverride + textToSave);
-            File.Delete(text2);
-            File.Move(text, text2);
+            File.WriteAllText(Path.Combine(path ?? Witchcraft.ModPath, fileName), (overrideText ? string.Empty : ReadText(fileName, path!)) + textToSave);
         }
         catch
         {
