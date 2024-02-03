@@ -50,6 +50,6 @@
     </ItemGroup>
 
     <Target Name="Copy" AfterTargets="Build">
-        <Copy SourceFiles="$(TargetPath)" DestinationFolder="C:/Program Files (x86)/Steam/steamapps/common/Town of Salem 2/SalemModLoader/Libs/"></Copy>
+        <Copy SourceFiles="$(TargetPath)" DestinationFolder="C:/Program Files (x86)/Steam/steamapps/common/Town of Salem 2/SalemModLoader/Mods/"></Copy>
     </Target>
 </Project>
