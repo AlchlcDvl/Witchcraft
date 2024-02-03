@@ -19,12 +19,12 @@ public static class Logging
 
     /// <summary>Creates a logger that displays logs from <paramref name="modName"/>. If <paramref name="modName"/> is null, then the the logger is registered under the assembly's name.</summary>
     /// <param name="modName">The name of the mod.</param>
-    public static void InitVoid(string modName = null!) => Init(modName);
+    public static void InitVoid(string? modName = null!) => Init(modName);
 
     /// <summary>Creates a logger that displays logs from <paramref name="modName"/>. If <paramref name="modName"/> is null, then the the logger is registered under the assembly's name.</summary>
     /// <param name="modName">The name of the mod.</param>
     /// <returns>A new <see cref="ManualLogSource"/> used for logging <paramref name="modName"/>'s messages.</returns>
-    public static ManualLogSource Init(string modName = null!)
+    public static ManualLogSource Init(string? modName = null!)
     {
         var assembly = Assembly.GetCallingAssembly();
         var assemblyName = Assembly.GetCallingAssembly().GetName().Name;
@@ -43,7 +43,7 @@ public static class Logging
     /// <param name="level">The level of the message.</param>
     /// <param name="modName">The name of the mod.</param>
     /// <param name="logIt">An override for whether you want to see the message regardless of the settings.</param>
-    private static void LogSomething(object message, LogLevel level, string modName = null!, bool logIt = false)
+    private static void LogSomething(object? message, LogLevel level, string? modName = null!, bool logIt = false)
     {
         var assembly = Assembly.GetCallingAssembly().GetName().Name;
 
@@ -56,7 +56,7 @@ public static class Logging
         message ??= $"message was null";
         message = $"[{DateTime.UtcNow}] {message}";
 
-        if (logIt || Constants.Debug)
+        if (logIt || WitchcraftConstants.Debug)
         {
             ModLoggers[key].Log(level, message);
             SavedLogs[key] += $"[{level,-7}] {message}\n";
@@ -67,55 +67,69 @@ public static class Logging
     /// <param name="message">The message being logged.</param>
     /// <param name="level">The level of the message.</param>
     /// <param name="logIt">An override for whether you want to see the message regardless of the settings.</param>
-    private static void LogSomething(object message, LogLevel level, bool logIt = false) => LogSomething(message, level, null!, logIt);
+    private static void LogSomething(object? message, LogLevel level, bool logIt = false) => LogSomething(message, level, null!, logIt);
 
-    /// <inheritdoc cref="LogSomething(object, LogLevel, string, bool)"/>
-    public static void LogError(string modName, object message) => LogSomething(message, LogLevel.Error, modName, true);
+    /// <summary>Logs errors for the mod that calls it.</summary>
+    /// <param name="modName">The name of the mod.</param>
+    /// <param name="message">The error being logged.</param>
+    public static void LogError(string? modName, object? message) => LogSomething(message, LogLevel.Error, modName, true);
 
-    /// <inheritdoc cref="LogSomething(object, LogLevel, string, bool)"/>
-    public static void LogMessage(string modName, object message, bool logIt = false) => LogSomething(message, LogLevel.Message, modName, logIt);
+    /// <summary>Logs messages for the mod that calls it.</summary>
+    /// <param name="modName">The name of the mod.</param>
+    /// <param name="message">The message being logged.</param>
+    /// <param name="logIt">An override for whether you want to see the message regardless of the settings.</param>
+    public static void LogMessage(string? modName, object? message, bool logIt = false) => LogSomething(message, LogLevel.Message, modName, logIt);
 
-    /// <inheritdoc cref="LogSomething(object, LogLevel, string, bool)"/>
-    public static void LogFatal(string modName, object message) => LogSomething(message, LogLevel.Fatal, modName, true);
+    /// <summary>Logs fatal errors for the mod that calls it.</summary>
+    /// <param name="modName">The name of the mod.</param>
+    /// <param name="message">The fatal error being logged.</param>
+    public static void LogFatal(string? modName, object? message) => LogSomething(message, LogLevel.Fatal, modName, true);
 
-    /// <inheritdoc cref="LogSomething(object, LogLevel, string, bool)"/>
-    public static void LogInfo(string modName, object message, bool logIt = false) => LogSomething(message, LogLevel.Info, modName, logIt);
+    /// <summary>Logs info messages for the mod that calls it.</summary>
+    /// <param name="modName">The name of the mod.</param>
+    /// <param name="message">The info message being logged.</param>
+    /// <param name="logIt">An override for whether you want to see the message regardless of the settings.</param>
+    public static void LogInfo(string? modName, object? message, bool logIt = false) => LogSomething(message, LogLevel.Info, modName, logIt);
 
-    /// <inheritdoc cref="LogSomething(object, LogLevel, string, bool)"/>
-    public static void LogWarning(string modName, object message, bool logIt = false) => LogSomething(message, LogLevel.Warning, modName, logIt);
+    /// <summary>Logs warnings for the mod that calls it.</summary>
+    /// <param name="modName">The name of the mod.</param>
+    /// <param name="message">The message being logged.</param>
+    /// <param name="logIt">An override for whether you want to see the message regardless of the settings.</param>
+    public static void LogWarning(string? modName, object? message, bool logIt = false) => LogSomething(message, LogLevel.Warning, modName, logIt);
 
-    /// <inheritdoc cref="LogSomething(object, LogLevel, string, bool)"/>
-    public static void LogDebug(string modName, object message, bool logIt = false) => LogSomething(message, LogLevel.Debug, modName, logIt);
+    /// <summary>Logs debug messages for the mod that calls it.</summary>
+    /// <param name="modName">The name of the mod.</param>
+    /// <param name="message">The message being logged.</param>
+    /// <param name="logIt">An override for whether you want to see the message regardless of the settings.</param>
+    public static void LogDebug(string? modName, object? message, bool logIt = false) => LogSomething(message, LogLevel.Debug, modName, logIt);
 
-    /// <inheritdoc cref="LogSomething(object, LogLevel, string, bool)"/>
-    public static void LogNone(string modName, object message, bool logIt = false) => LogSomething(message, LogLevel.None, modName, logIt);
+    /// <summary>Logs errors for the mod that calls it.</summary>
+    /// <param name="message">The message being logged.</param>
+    public static void LogError(object? message) => LogSomething(message, LogLevel.Error, true);
 
-    /// <inheritdoc cref="LogSomething(object, LogLevel, string, bool)"/>
-    public static void LogAll(string modName, object message, bool logIt = false) => LogSomething(message, LogLevel.All, modName, logIt);
+    /// <summary>Logs messages for the mod that calls it.</summary>
+    /// <param name="message">The message being logged.</param>
+    /// <param name="logIt">An override for whether you want to see the message regardless of the settings.</param>
+    public static void LogMessage(object? message, bool logIt = false) => LogSomething(message, LogLevel.Message, logIt);
 
-    /// <inheritdoc cref="LogSomething(object, LogLevel, bool)"/>
-    public static void LogError(object message) => LogSomething(message, LogLevel.Error, true);
+    /// <summary>Logs fatal errors for the mod that calls it.</summary>
+    /// <param name="message">The message being logged.</param>
+    public static void LogFatal(object? message) => LogSomething(message, LogLevel.Fatal, true);
 
-    /// <inheritdoc cref="LogSomething(object, LogLevel, bool)"/>
-    public static void LogMessage(object message, bool logIt = false) => LogSomething(message, LogLevel.Message, logIt);
+    /// <summary>Logs info messages for the mod that calls it.</summary>
+    /// <param name="message">The message being logged.</param>
+    /// <param name="logIt">An override for whether you want to see the message regardless of the settings.</param>
+    public static void LogInfo(object? message, bool logIt = false) => LogSomething(message, LogLevel.Info, logIt);
 
-    /// <inheritdoc cref="LogSomething(object, LogLevel, bool)"/>
-    public static void LogFatal(object message) => LogSomething(message, LogLevel.Fatal, true);
+    /// <summary>Logs warnings for the mod that calls it.</summary>
+    /// <param name="message">The message being logged.</param>
+    /// <param name="logIt">An override for whether you want to see the message regardless of the settings.</param>
+    public static void LogWarning(object? message, bool logIt = false) => LogSomething(message, LogLevel.Warning, logIt);
 
-    /// <inheritdoc cref="LogSomething(object, LogLevel, bool)"/>
-    public static void LogInfo(object message, bool logIt = false) => LogSomething(message, LogLevel.Info, logIt);
-
-    /// <inheritdoc cref="LogSomething(object, LogLevel, bool)"/>
-    public static void LogWarning(object message, bool logIt = false) => LogSomething(message, LogLevel.Warning, logIt);
-
-    /// <inheritdoc cref="LogSomething(object, LogLevel, bool)"/>
-    public static void LogDebug(object message, bool logIt = false) => LogSomething(message, LogLevel.Debug, logIt);
-
-    /// <inheritdoc cref="LogSomething(object, LogLevel, bool)"/>
-    public static void LogNone(object message, bool logIt = false) => LogSomething(message, LogLevel.None, logIt);
-
-    /// <inheritdoc cref="LogSomething(object, LogLevel, bool)"/>
-    public static void LogAll(object message, bool logIt = false) => LogSomething(message, LogLevel.All, logIt);
+    /// <summary>Logs debug messages for the mod that calls it.</summary>
+    /// <param name="message">The message being logged.</param>
+    /// <param name="logIt">An override for whether you want to see the message regardless of the settings.</param>
+    public static void LogDebug(object? message, bool logIt = false) => LogSomething(message, LogLevel.Debug, logIt);
 
     /// <summary>Saves all of the logs from the mods as a text file for each registered mod within Witchcraft's folder.</summary>
     public static void SaveLogs() => SavedLogs.ForEach((x, y) => GeneralUtils.SaveText($"{x}.txt", y));
