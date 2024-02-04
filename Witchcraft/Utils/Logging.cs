@@ -11,30 +11,20 @@ public static class Logging
     /// <summary>A dictionary containing the saved logs as string for registered mods.</summary>
     private static readonly Dictionary<string, string> SavedLogs = new();
 
-    /// <summary>A dictionary containing the saved keys as string for registered mods and their assemblies.</summary>
-    private static readonly Dictionary<string, string> SavedAssemblyNames = new();
-
-    /// <summary>A dictionary containing the saved keys as string for registered mods and their assemblies.</summary>
-    private static readonly Dictionary<string, Assembly> SavedAssemblies = new();
-
     /// <summary>Creates a logger that displays logs from <paramref name="modName"/>. If <paramref name="modName"/> is null, then the the logger is registered under the assembly's name.</summary>
     /// <param name="modName">The name of the mod.</param>
-    public static void InitVoid(string? modName = null!) => Init(modName);
+    public static void InitVoid(string? modName = null!) => Init(modName ?? Assembly.GetCallingAssembly().GetName().Name);
 
     /// <summary>Creates a logger that displays logs from <paramref name="modName"/>. If <paramref name="modName"/> is null, then the the logger is registered under the assembly's name.</summary>
     /// <param name="modName">The name of the mod.</param>
     /// <returns>A new <see cref="ManualLogSource"/> used for logging <paramref name="modName"/>'s messages.</returns>
     public static ManualLogSource Init(string? modName = null!)
     {
-        var assembly = Assembly.GetCallingAssembly();
-        var assemblyName = Assembly.GetCallingAssembly().GetName().Name;
-        modName ??= assemblyName;
+        modName ??= Assembly.GetCallingAssembly().GetName().Name;
         var key = modName.Replace(" ", string.Empty);
         var log = BepInEx.Logging.Logger.CreateLogSource(key);
         ModLoggers[key] = log;
         SavedLogs[key] = string.Empty;
-        SavedAssemblyNames[assemblyName] = key;
-        SavedAssemblies[assemblyName] = assembly;
         return log;
     }
 
@@ -43,15 +33,9 @@ public static class Logging
     /// <param name="level">The level of the message.</param>
     /// <param name="modName">The name of the mod.</param>
     /// <param name="logIt">An override for whether you want to see the message regardless of the settings.</param>
-    private static void LogSomething(object? message, LogLevel level, string? modName = null!, bool logIt = false)
+    private static void LogSomething(object? message, LogLevel level, string? modName, bool logIt = false)
     {
-        var assembly = Assembly.GetCallingAssembly().GetName().Name;
-
-        if (modName == null)
-            SavedAssemblyNames.TryGetValue(assembly, out modName);
-
-        modName ??= assembly;
-        var key = modName.Replace(" ", string.Empty);
+        var key = modName!.Replace(" ", string.Empty);
         var log = ModLoggers.TryGetValue(key, out var log1) ? log1 : Init(key);
         message ??= $"message was null";
         message = $"[{DateTime.UtcNow}] {message}";
@@ -62,12 +46,6 @@ public static class Logging
             SavedLogs[key] += $"[{level,-7}] {message}\n";
         }
     }
-
-    /// <summary>Logs messages for the mod that calls it.</summary>
-    /// <param name="message">The message being logged.</param>
-    /// <param name="level">The level of the message.</param>
-    /// <param name="logIt">An override for whether you want to see the message regardless of the settings.</param>
-    private static void LogSomething(object? message, LogLevel level, bool logIt = false) => LogSomething(message, level, null!, logIt);
 
     /// <summary>Logs errors for the mod that calls it.</summary>
     /// <param name="modName">The name of the mod.</param>
@@ -105,31 +83,31 @@ public static class Logging
 
     /// <summary>Logs errors for the mod that calls it.</summary>
     /// <param name="message">The message being logged.</param>
-    public static void LogError(object? message) => LogSomething(message, LogLevel.Error, true);
+    public static void LogError(object? message) => LogSomething(message, LogLevel.Error, Assembly.GetCallingAssembly().GetName().Name, true);
 
     /// <summary>Logs messages for the mod that calls it.</summary>
     /// <param name="message">The message being logged.</param>
     /// <param name="logIt">An override for whether you want to see the message regardless of the settings.</param>
-    public static void LogMessage(object? message, bool logIt = false) => LogSomething(message, LogLevel.Message, logIt);
+    public static void LogMessage(object? message, bool logIt = false) => LogSomething(message, LogLevel.Message, Assembly.GetCallingAssembly().GetName().Name, logIt);
 
     /// <summary>Logs fatal errors for the mod that calls it.</summary>
     /// <param name="message">The message being logged.</param>
-    public static void LogFatal(object? message) => LogSomething(message, LogLevel.Fatal, true);
+    public static void LogFatal(object? message) => LogSomething(message, LogLevel.Fatal, Assembly.GetCallingAssembly().GetName().Name, true);
 
     /// <summary>Logs info messages for the mod that calls it.</summary>
     /// <param name="message">The message being logged.</param>
     /// <param name="logIt">An override for whether you want to see the message regardless of the settings.</param>
-    public static void LogInfo(object? message, bool logIt = false) => LogSomething(message, LogLevel.Info, logIt);
+    public static void LogInfo(object? message, bool logIt = false) => LogSomething(message, LogLevel.Info, Assembly.GetCallingAssembly().GetName().Name, logIt);
 
     /// <summary>Logs warnings for the mod that calls it.</summary>
     /// <param name="message">The message being logged.</param>
     /// <param name="logIt">An override for whether you want to see the message regardless of the settings.</param>
-    public static void LogWarning(object? message, bool logIt = false) => LogSomething(message, LogLevel.Warning, logIt);
+    public static void LogWarning(object? message, bool logIt = false) => LogSomething(message, LogLevel.Warning, Assembly.GetCallingAssembly().GetName().Name, logIt);
 
     /// <summary>Logs debug messages for the mod that calls it.</summary>
     /// <param name="message">The message being logged.</param>
     /// <param name="logIt">An override for whether you want to see the message regardless of the settings.</param>
-    public static void LogDebug(object? message, bool logIt = false) => LogSomething(message, LogLevel.Debug, logIt);
+    public static void LogDebug(object? message, bool logIt = false) => LogSomething(message, LogLevel.Debug, Assembly.GetCallingAssembly().GetName().Name, logIt);
 
     /// <summary>Saves all of the logs from the mods as a text file for each registered mod within Witchcraft's folder.</summary>
     public static void SaveLogs() => SavedLogs.ForEach((x, y) => GeneralUtils.SaveText($"{x}.txt", y));

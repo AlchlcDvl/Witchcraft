@@ -51,7 +51,7 @@ public static class Patches
         };
     }
 
-    [HarmonyPatch(typeof(HomeScrollService), nameof(HomeScrollService.Init))]
+    /*[HarmonyPatch(typeof(HomeScrollService), nameof(HomeScrollService.Init))]
     private static class PatchScrollService
     {
         public static void Postfix(HomeScrollService __instance)
@@ -64,5 +64,5 @@ public static class Patches
             __instance.scrollInfoLookup_[(int)Role.SOCIALITE].decoration.sprite = Witchcraft.Socialite;
             __instance.cursedScrollInfoLookup_[(int)Role.SOCIALITE].decoration.sprite = Witchcraft.Socialite;
         }
-    }
+    }*/
 }
