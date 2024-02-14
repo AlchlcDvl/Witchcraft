@@ -1,20 +1,12 @@
 namespace Witchcraft.Utils;
 
-/// <summary>A class for dealing with <see cref="string"/>s.</summary>
 public static class StringUtils
 {
     private const string ASCII = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890!@#$%^&*()|{}[],.<>;':\"-+=*/`~_\\ ⟡☆♡♧♤ø▶❥✔εΔΓικνστυφψΨωχӪζδ♠♥βαµ♣✚Ξρλς§π★ηΛγΣΦΘξ✧¢" +
         "乂⁂¤∮彡个「」人요〖〗ロ米卄王īl【】·ㅇ°◈◆◇◥◤◢◣《》︵︶☆☀☂☹☺♡♩♪♫♬✓☜☞☟☯☃✿❀÷º¿※⁑∞≠";
-
-    /// <summary>An array containing traiditional lowercase english letters.</summary>
     public static readonly char[] Lowercase = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z' };
-
-    /// <summary>An array containing traiditional uppercase english letters.</summary>
     public static readonly char[] Uppercase = { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z' };
 
-    /// <summary>Creates a string of random characters.</summary>
-    /// <param name="maxLength">The length of the randomised string.</param>
-    /// <returns>A randomised string.</returns>
     public static string GetRandomisedName(int maxLength)
     {
         var length = URandom.RandomRangeInt(1, maxLength + 1);
@@ -29,11 +21,6 @@ public static class StringUtils
         return name;
     }
 
-    /// <summary>Wraps the text around a certain length to avoid text overflow out of the screen.</summary>
-    /// <param name="text">The text to be wrapped.</param>
-    /// <param name="width">The width of the wrap.</param>
-    /// <param name="overflow">Decides if words can go beyond the width if the character limit is reached before the word ends. If <see langword="false"/>, the word is added into the next line instead.</param>
-    /// <returns>A string representing the wrapped text, seperated by new lines.</returns>
     public static string WrapText(string text, int width = 90, bool overflow = true)
     {
         var result = new StringBuilder();
@@ -99,11 +86,6 @@ public static class StringUtils
         }
     }
 
-    /// <summary>Wraps the texts around a certain length to avoid text overflow out of the screen. Each element is wrapped individually and added as a new line to the end result.</summary>
-    /// <param name="texts">The texts to be wrapped.</param>
-    /// <param name="width">The width of the wrap.</param>
-    /// <param name="overflow">Decides if words can go beyond the width if the character limit is reached before the word ends. If <see langword="false"/>, the word is added into the next line instead.</param>
-    /// <returns>A string representing the wrapped text, seperated by new lines.</returns>
     public static string WrapTexts(List<string> texts, int width = 90, bool overflow = true)
     {
         var result = WrapText(texts[0], width, overflow);
@@ -111,19 +93,10 @@ public static class StringUtils
         return result;
     }
 
-    /// <summary>Returns <paramref name="color"/> as a hexadecimal string in the format "RRGGBBAA".</summary>
-    /// <param name="color">The color to be converted.</param>
-    /// <returns>Hexadecimal string representing the color.</returns>
-    /// <remarks>https://docs.unity3d.com/ScriptReference/ColorUtility.ToHtmlStringRGBA.html.</remarks>
     public static string ToHtmlStringRGBA(this Color32 color) => $"{color.r:X2}{color.g:X2}{color.b:X2}{color.a:X2}";
 
-    /// <inheritdoc cref="ToHtmlStringRGBA(Color32)"/>
     public static string ToHtmlStringRGBA(this Color color) => ((Color32)color).ToHtmlStringRGBA();
 
-    /// <summary>Returns a new string repeated N times. If the number of times is 0 this returns the original string.</summary>
-    /// <param name="str">string to repeat.</param>
-    /// <param name="times">number of times to repeat the string.</param>
-    /// <returns>If times is greater than 0, a new repeated string, otherwise the original string.</returns>
     public static string Repeat(this string str, int times)
     {
         if (times < 0)
@@ -137,14 +110,8 @@ public static class StringUtils
         return str;
     }
 
-    /// <summary>Indicates whether a specified string is null, empty, or consists only of white-space characters.</summary>
-    /// <param name="text">The maximum limit.</param>
-    /// <returns><see langword="true"/> if the value parameter is null or string.Empty, or if value consists exclusively of white-space characters.</returns>
     public static bool IsNullEmptyOrWhiteSpace(string text) => text is null or "" || text.All(x => x == ' ') || text.Length == 0 || string.IsNullOrWhiteSpace(text);
 
-    /// <summary>Adds spaces before uppercase letters.</summary>
-    /// <param name="text">The text to add spaces to.</param>
-    /// <returns>Spaced out <paramref name="text"/>.</returns>
     public static string AddSpaces(this string text)
     {
         Uppercase.ForEach(x =>
