@@ -30,8 +30,10 @@ public class Witchcraft
             if (x.EndsWith(".png", StringComparison.InvariantCulture))
             {
                 var sprite = FromResources.LoadSprite(x);
+                var name = x.Split('.')[^2];
                 sprite.DontDestroyOnLoad();
-                Assets[x.Split('.')[^2]] = sprite;
+                sprite.name = name;
+                Assets[name] = sprite;
             }
         });
 
