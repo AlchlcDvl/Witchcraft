@@ -33,7 +33,7 @@ public class Witchcraft
 
     public static SalemMenuButton menuButtonName = new()
     {
-        Label = "Witchcraft",
+        Label = "Witchcraft Logs",
         Icon = FromResources.LoadSprite("Witchcraft.Resources.Thumbnail.png"),
         OnClick = OpenDirectory
     };
