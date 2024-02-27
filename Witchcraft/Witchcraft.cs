@@ -18,7 +18,7 @@ public class Witchcraft
 
         Core.GetManifestResourceNames().ForEach(x =>
         {
-            if (x.EndsWith(".png", StringComparison.InvariantCulture))
+            if (x.EndsWith(".png"))
             {
                 var sprite = FromResources.LoadSprite(x);
                 var name = x.Split('.')[^2];
