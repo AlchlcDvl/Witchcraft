@@ -31,7 +31,7 @@ public class Witchcraft
         Logging.LogMessage("Magic is brewing!", true);
     }
 
-    public static SalemMenuButton menuButtonName = new()
+    public static readonly SalemMenuButton MenuButton = new()
     {
         Label = "Witchcraft Logs",
         Icon = FromResources.LoadSprite("Witchcraft.Resources.Thumbnail.png"),
