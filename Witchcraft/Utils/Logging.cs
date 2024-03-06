@@ -4,8 +4,8 @@ namespace Witchcraft.Utils;
 
 public static class Logging
 {
-    private static readonly Dictionary<string, ManualLogSource> ModLoggers = new();
-    private static readonly Dictionary<string, string> SavedLogs = new();
+    private static readonly Dictionary<string, ManualLogSource> ModLoggers = [];
+    private static readonly Dictionary<string, string> SavedLogs = [];
 
     public static void InitVoid(string? modName = null) => Init(modName ?? Assembly.GetCallingAssembly().GetName().Name);
 

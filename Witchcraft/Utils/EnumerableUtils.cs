@@ -126,7 +126,7 @@ public static class EnumerableUtils
             if (temp.Count == splitCount)
             {
                 result.Add(temp);
-                temp = new();
+                temp = [];
             }
         }
 

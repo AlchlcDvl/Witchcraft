@@ -6,7 +6,7 @@ public class Witchcraft
 {
     public static string ModFoldersPath => Path.Combine(Path.GetDirectoryName(Application.dataPath), "SalemModLoader", "ModFolders");
     public static string ModPath => Path.Combine(ModFoldersPath, "Witchcraft");
-    public static readonly Dictionary<string, Sprite?> Assets = new();
+    public static readonly Dictionary<string, Sprite?> Assets = [];
     private static Assembly Core => typeof(Witchcraft).Assembly;
 
     public void Start()
@@ -25,6 +25,9 @@ public class Witchcraft
                 sprite.DontDestroyOnLoad();
                 sprite.name = name;
                 Assets[name] = sprite;
+
+                if (name == "Thumbnail")
+                    MenuButton.Icon = sprite;
             }
         });
 
@@ -34,7 +37,6 @@ public class Witchcraft
     public static readonly SalemMenuButton MenuButton = new()
     {
         Label = "Witchcraft Logs",
-        Icon = FromResources.LoadSprite("Witchcraft.Resources.Thumbnail.png"),
         OnClick = OpenDirectory
     };
 

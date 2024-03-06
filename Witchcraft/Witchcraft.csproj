@@ -3,9 +3,9 @@
         <TargetFramework>netstandard2.1</TargetFramework>
         <AssemblyName>Witchcraft</AssemblyName>
         <Description>A library of utility methods for developers!</Description>
-        <Version>1.0.0</Version>
+        <Version>1.0.1</Version>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        <LangVersion>latest</LangVersion>
+        <LangVersion>preview</LangVersion>
         <RestoreAdditionalProjectSources>
             https://api.nuget.org/v3/index.json;
             https://nuget.bepinex.dev/v3/index.json
@@ -32,10 +32,6 @@
         <Reference Include="UnityEngine.UI"><HintPath>Lib\UnityEngine.CoreModule.dll</HintPath></Reference>
         <Reference Include="SalemModLoader"><HintPath>Lib\SalemModLoader.dll</HintPath></Reference>
         <Reference Include="BepInEx"><HintPath>Lib\BepInEx.dll</HintPath></Reference>
-    </ItemGroup>
-
-    <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">
-        <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
     </ItemGroup>
 
     <Target Name="Copy" AfterTargets="Build">
