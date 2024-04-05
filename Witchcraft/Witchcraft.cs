@@ -18,16 +18,23 @@ public class Witchcraft
 
         Core.GetManifestResourceNames().ForEach(x =>
         {
-            if (x.EndsWith(".png"))
+            try
             {
-                var sprite = FromResources.LoadSprite(x);
-                var name = x.Split('.')[^2];
-                sprite.DontDestroyOnLoad();
-                sprite.name = name;
-                Assets[name] = sprite;
+                if (x.EndsWith(".png"))
+                {
+                    var sprite = FromResources.LoadSprite(x);
+                    var name = x.Split('.')[^2];
+                    sprite.DontDestroyOnLoad();
+                    sprite.name = name;
+                    Assets[name] = sprite;
 
-                if (name == "Thumbnail")
-                    MenuButton.Icon = sprite;
+                    if (name == "Thumbnail")
+                        MenuButton.Icon = sprite;
+                }
+            }
+            catch (Exception e)
+            {
+                Logging.LogError(e);
             }
         });
 
