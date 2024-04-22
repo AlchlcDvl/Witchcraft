@@ -34,7 +34,7 @@ public class Witchcraft
             }
             catch (Exception e)
             {
-                Logging.LogError(e);
+                Logging.LogError($"Loading {x} had an error:\n{e}");
             }
         });
 

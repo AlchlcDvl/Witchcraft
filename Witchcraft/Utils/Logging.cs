@@ -24,12 +24,12 @@ public static class Logging
         var key = modName!.Replace(" ", string.Empty);
         var log = ModLoggers.TryGetValue(key, out var log1) ? log1 : Init(key);
         message ??= $"message was null";
-        message = $"[{DateTime.UtcNow}] {message}";
 
         if (logIt || WitchcraftConstants.Debug)
         {
-            ModLoggers[key].Log(level, message);
-            SavedLogs[key] += $"[{level,-7}] {message}\n";
+            var now = DateTime.UtcNow;
+            ModLoggers[key].Log(level, $"[{DateTime.UtcNow}] {message}");
+            SavedLogs[key] += $"[{level,-7}, {now}] {message}\n";
         }
     }
 
