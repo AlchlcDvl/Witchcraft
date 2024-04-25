@@ -6,6 +6,7 @@ public static class Logging
 {
     private static readonly Dictionary<string, ManualLogSource> ModLoggers = [];
     private static readonly Dictionary<string, string> SavedLogs = [];
+    private static string? AllLogs = "";
 
     public static void InitVoid(string? modName = null) => Init(modName ?? Assembly.GetCallingAssembly().GetName().Name);
 
@@ -29,7 +30,8 @@ public static class Logging
         {
             var now = DateTime.UtcNow;
             ModLoggers[key].Log(level, $"[{DateTime.UtcNow}] {message}");
-            SavedLogs[key] += $"[{level,-7}, {now}] {message}\n";
+            SavedLogs[key] += $"[{level, -7}, {now}] {message}\n";
+            AllLogs += $"[{key}, {level, -7}, {now}] {message}\n";
         }
     }
 
@@ -57,5 +59,9 @@ public static class Logging
 
     public static void LogDebug(object? message, bool logIt = false) => LogSomething(message, LogLevel.Debug, Assembly.GetCallingAssembly().GetName().Name, logIt);
 
-    public static void SaveLogs() => SavedLogs.ForEach((x, y) => GeneralUtils.SaveText($"{x}.txt", y));
+    public static void SaveLogs()
+    {
+        SavedLogs.ForEach((x, y) => GeneralUtils.SaveText($"{x}.txt", y));
+        GeneralUtils.SaveText("AllLogs.txt", AllLogs!);
+    }
 }
