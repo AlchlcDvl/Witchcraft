@@ -13,7 +13,7 @@
         <RootNamespace>Witchcraft</RootNamespace>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <Authors>AlchlcDvl</Authors>
+        <Authors>AlchlcSystm</Authors>
         <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
         <EnableDynamicLoading>true</EnableDynamicLoading>
         <DebugType>embedded</DebugType>
@@ -21,6 +21,7 @@
         <RepositoryType>git</RepositoryType>
         <RepositoryUrl>https://github.com/AlchlcDvl/Witchcraft</RepositoryUrl>
         <PackageLicenseExpression>GPL-3.0-or-later</PackageLicenseExpression>
+        <TOS>C:\Program Files (x86)\Steam\steamapps\common\Town of Salem 2</TOS>
     </PropertyGroup>
 
     <ItemGroup>
@@ -34,7 +35,7 @@
         <Reference Include="BepInEx"><HintPath>Lib\BepInEx.dll</HintPath></Reference>
     </ItemGroup>
 
-    <Target Name="Copy" AfterTargets="Build">
-        <Copy SourceFiles="$(TargetPath)" DestinationFolder="C:/Program Files (x86)/Steam/steamapps/common/Town of Salem 2/SalemModLoader/Mods/"></Copy>
+    <Target Name="Copy" AfterTargets="Build" Condition="'$(TOS)' != ''">
+        <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(TOS)/SalemModLoader/Mods"></Copy>
     </Target>
 </Project>
