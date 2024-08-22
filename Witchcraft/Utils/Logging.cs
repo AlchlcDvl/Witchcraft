@@ -6,7 +6,9 @@ public static class Logging
 {
     private static readonly Dictionary<string, ManualLogSource> ModLoggers = [];
     private static readonly Dictionary<string, string> SavedLogs = [];
+    private static readonly Dictionary<string, int> LogMessageCount = [];
     private static string? AllLogs = "";
+    private static int AllLogsCount = 0;
 
     public static void InitVoid(string? modName = null) => Init(modName ?? Assembly.GetCallingAssembly().GetName().Name);
 
@@ -17,6 +19,7 @@ public static class Logging
         var log = BepInEx.Logging.Logger.CreateLogSource(key);
         ModLoggers[key] = log;
         SavedLogs[key] = string.Empty;
+        LogMessageCount[key] = 0;
         return log;
     }
 
@@ -29,9 +32,19 @@ public static class Logging
         if (logIt || WitchcraftConstants.Debug)
         {
             var now = DateTime.UtcNow;
-            ModLoggers[key].Log(level, $"[{DateTime.UtcNow}] {message}");
+            ModLoggers[key].Log(level, $"[{now}] {message}");
             SavedLogs[key] += $"[{level, -7}, {now}] {message}\n";
             AllLogs += $"[{key}, {level, -7}, {now}] {message}\n";
+            LogMessageCount[key]++;
+            AllLogsCount++;
+
+            if (LogMessageCount[key] >= 10 || level is not LogLevel.Message or LogLevel.Info or LogLevel.Debug)
+            {
+                SaveLogs(key);
+                GeneralUtils.SaveText("AllLogs.txt", AllLogs!);
+            }
+            else if (AllLogsCount >= 10 || level is not LogLevel.Message or LogLevel.Info or LogLevel.Debug)
+                GeneralUtils.SaveText("AllLogs.txt", AllLogs!);
         }
     }
 
@@ -61,7 +74,15 @@ public static class Logging
 
     public static void SaveLogs()
     {
-        SavedLogs.ForEach((x, y) => GeneralUtils.SaveText($"{x}.txt", y));
+        SavedLogs.Keys.ForEach(SaveLogs);
         GeneralUtils.SaveText("AllLogs.txt", AllLogs!);
+    }
+
+    public static void SaveLogs(string? modName = null!)
+    {
+        var key = modName!.Replace(" ", string.Empty);
+
+        if (SavedLogs.TryGetValue(key!, out var logs))
+            GeneralUtils.SaveText($"{key}.txt", logs);
     }
 }

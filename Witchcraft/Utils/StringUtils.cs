@@ -13,10 +13,7 @@ public static class StringUtils
         var name = string.Empty;
 
         while (name.Length < length)
-        {
-            var random = URandom.RandomRangeInt(0, ASCII.Length);
-            name += ASCII[random];
-        }
+            name += ASCII[URandom.RandomRangeInt(0, ASCII.Length)];
 
         return name;
     }
@@ -29,7 +26,7 @@ public static class StringUtils
 
         while (startIndex < text.Length)
         {
-            var num = text.IndexOfAny(new[] { ' ', '\t', '\r' }, startIndex);
+            var num = text.IndexOfAny([ ' ', '\t', '\r' ], startIndex);
 
             if (num != -1)
             {
@@ -121,6 +118,7 @@ public static class StringUtils
             if (index > 0)
                 text = text.Insert(index, " ");
         });
+
         return text;
     }
 }
