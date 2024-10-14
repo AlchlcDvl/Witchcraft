@@ -2,7 +2,19 @@ namespace Witchcraft.Utils;
 
 public static class NumberUtils
 {
-    public static bool IsInRange(float num, float min, float max, bool minInclusive = false, bool maxInclusive = false)
+    public static bool IsInRange(this float num, float min, float max, bool minInclusive = false, bool maxInclusive = false)
+    {
+        if (minInclusive && maxInclusive)
+            return num >= min && num <= max;
+        else if (minInclusive)
+            return num >= min && num < max;
+        else if (maxInclusive)
+            return num > min && num <= max;
+        else
+            return num > min && num < max;
+    }
+
+    public static bool IsInRange(this int num, float min, float max, bool minInclusive = false, bool maxInclusive = false)
     {
         if (minInclusive && maxInclusive)
             return num >= min && num <= max;

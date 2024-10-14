@@ -358,20 +358,6 @@ Desktop.ini
 .build
 tools
 
-Among Us.app/
-
-Among Us/*.*
-Among Us/*/*
-
-!Among Us/BepInEx/*
-!Among Us/mono/*
-!Among Us/winhttp.dll
-!Among Us/doorstop_config.ini
-
-Among Us/BepInEx/cache/
-Among Us/BepInEx/LogOutput.*
-Among Us/output_log.txt
-
 *.txt
 .vscode/
 packages.lock.json

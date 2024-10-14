@@ -2,14 +2,34 @@ namespace Witchcraft.Utils;
 
 public static class EnumerableUtils
 {
-    public static void ForEach<T>(this IEnumerable<T> source, Action<T> action) => source.ToList().ForEach(action);
+    public static void ForEach<T>(this IEnumerable<T> source, Action<T> action)
+    {
+        foreach (var item in source)
+            action(item);
+    }
+
+    public static void ForEach<TKey, TValue>(this IDictionary<TKey, TValue> dict, Action<TKey, TValue> action) => dict.ToList().ForEach(pair => action(pair.Key, pair.Value));
+
+    public static void ForEach<T>(this IEnumerable<T> source, Action<T, int> action)
+    {
+        if (source == null)
+            throw new ArgumentNullException(nameof(source));
+
+        var num = 0;
+        var enumerator = source.GetEnumerator();
+
+        while (enumerator.MoveNext())
+            action(enumerator.Current, num++);
+
+        enumerator.Dispose();
+    }
 
     public static TValue? GetOrCompute<TKey, TValue>(this IDictionary<TKey, TValue> dict, TKey key, Func<TValue> supplier) where TKey : notnull
     {
-        if (!dict.ContainsKey(key))
+        if (!dict.TryGetValue(key, out var value))
             return dict[key] = supplier();
 
-        return dict[key];
+        return value;
     }
 
     public static void Shuffle<T>(this List<T> list)
@@ -70,29 +90,36 @@ public static class EnumerableUtils
     {
         var contains = list.Contains(item1);
 
-        if (contains)
+        try
         {
-            if (all)
+            if (contains)
             {
-                var clone = new List<T>(list);
-
-                foreach (var item in clone)
+                if (all)
                 {
-                    if (Equals(item, item1))
-                    {
-                        var pos = clone.IndexOf(item);
+                    var clone = new List<T>(list);
 
-                        if (list.Remove(item))
-                            list.Insert(pos, item2);
+                    foreach (var item in clone)
+                    {
+                        if (Equals(item, item1))
+                        {
+                            var pos = clone.IndexOf(item);
+
+                            if (list.Remove(item))
+                                list.Insert(pos, item2);
+                        }
                     }
                 }
+                else
+                {
+                    var index = list.IndexOf(item1);
+                    list.Remove(item1);
+                    list.Insert(index, item2);
+                }
             }
-            else
-            {
-                var index = list.IndexOf(item1);
-                list.Remove(item1);
-                list.Insert(index, item2);
-            }
+        }
+        catch
+        {
+            contains = false;
         }
 
         return contains;
@@ -105,8 +132,6 @@ public static class EnumerableUtils
     }
 
     public static T? Random<T>(this IEnumerable<T> input, Func<T, bool> predicate, T? defaultVal = default) => input.Where(predicate).Random(defaultVal);
-
-    public static void ForEach<TKey, TValue>(this IDictionary<TKey, TValue> dict, Action<TKey, TValue> action) => dict.ToList().ForEach(pair => action(pair.Key, pair.Value));
 
     public static T? Random<T>(this IEnumerable<T> input, SRandom random, T? defaultVal = default)
     {
@@ -136,6 +161,31 @@ public static class EnumerableUtils
         return result;
     }
 
+    public static List<List<T>> Split<T>(this List<T> list, Func<T, bool> splitCondition, bool includeSatisfier = true)
+    {
+        var result = new List<List<T>>();
+        var temp = new List<T>();
+
+        foreach (var item in list)
+        {
+            if (splitCondition(item))
+            {
+                if (includeSatisfier)
+                    temp.Add(item);
+
+                result.Add(temp);
+                temp = [];
+            }
+            else
+                temp.Add(item);
+        }
+
+        if (temp.Count > 0)
+            result.Add(temp);
+
+        return result;
+    }
+
     public static int IndexOf<T>(this IEnumerable<T> source, Func<T, bool> predicate)
     {
         if (source == null)
@@ -152,4 +202,45 @@ public static class EnumerableUtils
 
         return -1;
     }
+
+    public static List<T> GetRandomRange<T>(this IEnumerable<T> input, int count, T? defaultVal = default)
+    {
+        var temp = new List<T>();
+
+        if (input.Count() <= count)
+            temp.AddRange(input);
+        else
+        {
+            while (temp.Count < count)
+                temp.Add(input.Random(x => !temp.Contains(x), defaultVal)!);
+        }
+
+        temp.Shuffle();
+        return temp;
+    }
+
+    public static bool TryFinding<T>(this IEnumerable<T> source, Func<T, bool> predicate, out T? value)
+    {
+        try
+        {
+            value = source.First(predicate);
+            return true;
+        }
+        catch
+        {
+            value = default;
+            return false;
+        }
+    }
+
+    public static void AddMany<T>(this IEnumerable<T> list, T item, int count)
+    {
+        while (count > 0)
+        {
+            list = list.AddItem(item);
+            count--;
+        }
+    }
+
+    public static bool AllAnyOrEmpty<T>(this IEnumerable<T> source, Func<T, bool> predicate, bool all = false) => !source.Any() || (all ? source.All(predicate) : source.Any(predicate));
 }

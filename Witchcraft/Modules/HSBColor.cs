@@ -1,14 +1,14 @@
 namespace Witchcraft.Modules;
 
 [Serializable]
-public struct HSBColor
+public struct HsbColor
 {
     public float h { get; set; }
     public float s { get; set; }
     public float b { get; set; }
     public float a { get; set; }
 
-    public HSBColor(float h, float s, float b, float a)
+    public HsbColor(float h, float s, float b, float a)
     {
         this.h = h;
         this.s = s;
@@ -16,9 +16,9 @@ public struct HSBColor
         this.a = a;
     }
 
-    public HSBColor(float h, float s, float b) : this(h, s, b, 1f) {}
+    public HsbColor(float h, float s, float b) : this(h, s, b, 1f) {}
 
-    public HSBColor(Color col)
+    public HsbColor(Color col)
     {
         var temp = FromColor(col);
         h = temp.h;
@@ -27,9 +27,19 @@ public struct HSBColor
         a = temp.a;
     }
 
-    public static HSBColor FromColor(Color color)
+    public override readonly bool Equals(object? obj) => obj is HsbColor color && Equals(color);
+
+    public readonly bool Equals(HsbColor other) => h.Equals(other.h) && s.Equals(other.s) && b.Equals(other.b) && a.Equals(other.a);
+
+    public static bool operator ==(HsbColor left, HsbColor right) => left.Equals(right);
+
+    public static bool operator !=(HsbColor left, HsbColor right) => !(left == right);
+
+    public override readonly int GetHashCode() => HashCode.Combine(h, s, b, a);
+
+    public static HsbColor FromColor(Color color)
     {
-        var ret = new HSBColor(0f, 0f, 0f, color.a);
+        var ret = new HsbColor(0f, 0f, 0f, color.a);
 
         var r = color.r;
         var g = color.g;
@@ -54,19 +64,77 @@ public struct HSBColor
             else
                 ret.h = (g - b) / dif * 60f;
 
-            if (ret.h < 0)
+            while (ret.h < 0)
                 ret.h += 360f;
+
+            while (ret.h > 360)
+                ret.h -= 360f;
         }
         else
             ret.h = 0;
 
-        ret.h *= 1f / 360f;
-        ret.s = dif / max * 1f;
+        ret.h /= 360f;
+        ret.s = dif / max;
         ret.b = max;
         return ret;
     }
 
-    public static Color ToColor(HSBColor hsbColor)
+    public float this[int index]
+    {
+        readonly get
+        {
+            return index switch
+            {
+                0 => h,
+                1 => s,
+                2 => b,
+                3 => a,
+                _ => throw new IndexOutOfRangeException("Invalid HsbColor index (" + index + ")!"),
+            };
+        }
+        set
+        {
+            switch (index)
+            {
+                case 0:
+                    h = value;
+                    break;
+
+                case 1:
+                    s = value;
+                    break;
+
+                case 2:
+                    b = value;
+                    break;
+
+                case 3:
+                    a = value;
+                    break;
+
+                default:
+                    throw new IndexOutOfRangeException("Invalid Color index(" + index + ")!");
+            }
+        }
+    }
+
+    public static HsbColor operator +(HsbColor a, HsbColor b) => new(a.h + b.h, a.s + b.s, a.b + b.b, a.a + b.a);
+
+    public static HsbColor operator -(HsbColor a, HsbColor b) => new(a.h - b.h, a.s - b.s, a.b - b.b, a.a - b.a);
+
+    public static HsbColor operator *(HsbColor a, HsbColor b) => new(a.h * b.h, a.s * b.s, a.b * b.b, a.a * b.a);
+
+    public static HsbColor operator /(HsbColor a, HsbColor b) => new(a.h / b.h, a.s / b.s, a.b / b.b, a.a / b.a);
+
+    public static HsbColor operator *(HsbColor a, float b) => new(a.h * b, a.s * b, a.b * b, a.a * b);
+
+    public static HsbColor operator *(float b, HsbColor a) => new(a.h * b, a.s * b, a.b * b, a.a * b);
+
+    public static HsbColor operator /(HsbColor a, float b) => new(a.h / b, a.s / b, a.b / b, a.a / b);
+
+    public static HsbColor operator /(float b, HsbColor a) => new(a.h / b, a.s / b, a.b / b, a.a / b);
+
+    public static Color ToColor(HsbColor hsbColor)
     {
         var r = hsbColor.b;
         var g = hsbColor.b;
@@ -131,7 +199,7 @@ public struct HSBColor
 
     public override readonly string ToString() => $"H: {h} S: {s} B: {b}";
 
-    public static HSBColor Lerp(HSBColor a, HSBColor b, float t)
+    public static HsbColor Lerp(HsbColor a, HsbColor b, float t)
     {
         float h, s;
 
@@ -176,7 +244,7 @@ public struct HSBColor
 
     public static float PingPongReverse(float min, float max, float mul) => max - Mathf.PingPong(Time.time * mul, max - min);
 
-    public static HSBColor Parse(string input)
+    public static HsbColor Parse(string input)
     {
         input = input.Replace(" ", string.Empty);
         var parts = input.Split(';');
@@ -209,7 +277,7 @@ public struct HSBColor
         return new(parts2[0], parts2[1], parts2[2], parts2.Count == 4 ? parts2[3] : 1f);
     }
 
-    public static bool TryParse(string input, out HSBColor color)
+    public static bool TryParse(string input, out HsbColor color)
     {
         try
         {
@@ -222,4 +290,8 @@ public struct HSBColor
             return false;
         }
     }
+
+    public static float Dot(HsbColor a, HsbColor b) => (a.h * b.h) + (a.s * b.s) + (a.b * b.b) + (a.a * b.a);
+
+    public static HsbColor Cross(HsbColor a, HsbColor b) => new((a.s * b.b) - (a.b * b.s), (a.h * b.b) - (a.b * b.h), (a.h * b.s) - (a.s * b.b), Mathf.Lerp(a.a, b.a, 0.5f));
 }

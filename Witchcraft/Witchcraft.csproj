@@ -3,7 +3,7 @@
         <TargetFramework>netstandard2.1</TargetFramework>
         <AssemblyName>Witchcraft</AssemblyName>
         <Description>A library of utility methods for developers!</Description>
-        <Version>1.0.2</Version>
+        <Version>1.1.0</Version>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <LangVersion>preview</LangVersion>
         <RestoreAdditionalProjectSources>
@@ -28,7 +28,6 @@
         <EmbeddedResource Include="Resources\*" />
         <PackageReference Include="HarmonyX" Version="2.10.1" />
         <PackageReference Include="UnityEngine.Modules" Version="2021.3.1" IncludeAssets="compile" />
-        <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All" />
         <Reference Include="Lib\*.dll">
             <HintPath>Lib\%(FileName)%(Extension)</HintPath>
             <Private>false</Private>

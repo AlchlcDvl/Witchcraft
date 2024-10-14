@@ -3,19 +3,17 @@ namespace Witchcraft.Utils;
 public static class StringUtils
 {
     private const string ASCII = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890!@#$%^&*()|{}[],.<>;':\"-+=*/`~_\\ ⟡☆♡♧♤ø▶❥✔εΔΓικνστυφψΨωχӪζδ♠♥βαµ♣✚Ξρλς§π★ηΛγΣΦΘξ✧¢" +
-        "乂⁂¤∮彡个「」人요〖〗ロ米卄王īl【】·ㅇ°◈◆◇◥◤◢◣《》︵︶☆☀☂☹☺♡♩♪♫♬✓☜☞☟☯☃✿❀÷º¿※⁑∞≠";
+        "乂⁂¤∮彡个「」人요〖〗ロ米卄王īl【】·ㅇ°◈◆◇◥◤◢◣《》︵︶☆☀☂☹☺♡♩♪♫♬✓☜☞☟☯☃✿❀÷º¿※⁑∞≠²";
     public static readonly char[] Lowercase = [ 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z' ];
     public static readonly char[] Uppercase = [ 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z' ];
 
-    public static string GetRandomisedName(int maxLength)
+    public static string GetRandomisedString(int maxLength) => ASCII.AsEnumerable().GetRandomRange(URandom.RandomRangeInt(1, maxLength + 1)).ConstructString();
+
+    public static string ConstructString(this IEnumerable<char> chars)
     {
-        var length = URandom.RandomRangeInt(1, maxLength + 1);
-        var name = string.Empty;
-
-        while (name.Length < length)
-            name += ASCII[URandom.RandomRangeInt(0, ASCII.Length)];
-
-        return name;
+        var result = string.Empty;
+        chars.ForEach(x => result += x);
+        return result;
     }
 
     public static string WrapText(string text, int width = 90, bool overflow = true)
@@ -83,16 +81,15 @@ public static class StringUtils
         }
     }
 
-    public static string WrapTexts(List<string> texts, int width = 90, bool overflow = true)
+    public static string WrapTexts(IEnumerable<string> texts, int width = 90, bool overflow = true)
     {
-        var result = WrapText(texts[0], width, overflow);
+        if (!texts.Any())
+            return string.Empty;
+
+        var result = WrapText(texts.FirstOrDefault(), width, overflow);
         texts.Skip(1).ForEach(x => result += $"\n{WrapText(x, width, overflow)}");
         return result;
     }
-
-    public static string ToHtmlStringRGBA(this Color32 color) => $"{color.r:X2}{color.g:X2}{color.b:X2}{color.a:X2}";
-
-    public static string ToHtmlStringRGBA(this Color color) => ((Color32)color).ToHtmlStringRGBA();
 
     public static string Repeat(this string str, int times)
     {
@@ -107,7 +104,7 @@ public static class StringUtils
         return str;
     }
 
-    public static bool IsNullEmptyOrWhiteSpace(string text) => text is null or "" || text.All(x => x == ' ') || text.Length == 0 || string.IsNullOrWhiteSpace(text);
+    public static bool IsNullEmptyOrWhiteSpace(string? text) => text is null or "" || text.All(x => x == ' ') || text.Length == 0 || string.IsNullOrWhiteSpace(text);
 
     public static string AddSpaces(this string text)
     {
@@ -121,4 +118,25 @@ public static class StringUtils
 
         return text;
     }
+
+    public static string SanitisePath(this string path)
+    {
+        path = path.Split('/')[^1];
+        path = path.Split('\\')[^1];
+        path = path.Replace("_mac", string.Empty); // For asset bundles
+        path = path.Replace(".txt", string.Empty);
+        path = path.Replace(".log", string.Empty);
+        path = path.Replace(".mp3", string.Empty);
+        path = path.Replace(".raw", string.Empty);
+        path = path.Replace(".png", string.Empty);
+        path = path.Replace(".jpg", string.Empty);
+        path = path.Replace(".gif", string.Empty);
+        path = path.Replace(".xml", string.Empty);
+        path = path.Replace(".ogg", string.Empty);
+        path = path.Replace(".wav", string.Empty);
+        path = path.Split('.')[^1];
+        return path;
+    }
+
+    public static bool EndsWithAny(this string name, string[] endings) => Array.Exists(endings, name.EndsWith);
 }

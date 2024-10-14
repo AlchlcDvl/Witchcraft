@@ -1,68 +1,14 @@
 using System.Collections;
 
-// Using a modified version of the gif loader from here: https://github.com/Turninator95/UniGif, this fellow's a life saver man
 namespace Witchcraft.Gifs;
 
 public static class GifLoader
 {
-    public static List<Sprite> LoadGifFromResources(string path) => LoadGifFromResources(path, Assembly.GetCallingAssembly());
-
-    public static List<Sprite> LoadGifFromResources(string path, Assembly assembly) => LoadGif(ReadFully(assembly.GetManifestResourceStream(path)));
-
-    private static byte[] ReadFully(Stream input)
-    {
-        using var memoryStream = new MemoryStream();
-        input.CopyTo(memoryStream);
-        return memoryStream.ToArray();
-    }
-
-    public static List<Sprite> LoadGifFromExternal(string path) => LoadGif(File.ReadAllBytes(path));
-
-    private static List<Sprite> LoadGif(byte[] data)
-    {
-        var result = new List<Sprite>();
-        var gifData = SetGifData(data);
-
-        if (gifData == null || gifData.m_imageBlockList == null || gifData.m_imageBlockList.Count < 1)
-            return [];
-
-        var width = gifData.ScreenWidth;
-        var height = gifData.ScreenHeight;
-        var imgIndex = 0;
-        var rawTextures = new List<Color32[]>();
-
-        foreach (var img in gifData.m_imageBlockList)
-        {
-            var decodedData = GetDecodedData(img);
-            var graphicCtrlEx = GetGraphicCtrlExt(gifData, imgIndex);
-            var transparentIndex = GetTransparentIndex(graphicCtrlEx);
-
-            var colorTable = GetColorTableAndSetBgColor(gifData, img, transparentIndex, out var bgColor);
-            rawTextures.Add(GetTextureData(decodedData, bgColor, colorTable, transparentIndex, img));
-            imgIndex++;
-        }
-
-        for (var i = 0; i < rawTextures.Count; i++)
-        {
-            var gifFrame = new Texture2D(width, height, TextureFormat.ARGB32, false, false)
-            {
-                filterMode = FilterMode.Point,
-                wrapMode = TextureWrapMode.Clamp
-            };
-            gifFrame.SetPixels32(rawTextures[i], 0);
-            gifFrame.Apply();
-
-            result.Add(Sprite.Create(gifFrame, new(0, 0, width, height), new(0.5f, 0.5f), 100));
-        }
-
-        return result;
-    }
-
-    private static GifData SetGifData(byte[] gifBytes)
+    public static GifData SetGifData(byte[] gifBytes)
     {
         if (gifBytes == null || gifBytes.Length <= 0)
         {
-            Logging.LogError("Byte data is empty.");
+            Witchcraft.Instance!.Error("Byte data is empty.");
             return null!;
         }
 
@@ -71,47 +17,47 @@ public static class GifLoader
 
         if (!SetGifHeader(gifBytes, ref byteIndex, ref gifData))
         {
-            Logging.LogError("Problem setting header data.");
+            Witchcraft.Instance!.Error("Problem setting header data.");
             return null!;
         }
 
         if (!SetGifBlock(gifBytes, ref byteIndex, ref gifData))
         {
-            Logging.LogError("Problem setting gif block data.");
+            Witchcraft.Instance!.Error("Problem setting gif block data.");
             return null!;
         }
 
         return gifData;
     }
 
-    private static bool SetGifHeader(byte[] gifBytes, ref int byteIndex, ref GifData gifData)
+    public static bool SetGifHeader(byte[] gifBytes, ref int byteIndex, ref GifData gifData)
     {
         if (gifBytes[0] != 'G' || gifBytes[1] != 'I' || gifBytes[2] != 'F')
         {
-            Logging.LogError("Header data is not valid for a GIF file.");
+            Witchcraft.Instance!.Error("Header data is not valid for a GIF file.");
             return false;
         }
 
-        gifData.m_sig0 = gifBytes[0];
-        gifData.m_sig1 = gifBytes[1];
-        gifData.m_sig2 = gifBytes[2];
+        gifData.Sig0 = gifBytes[0];
+        gifData.Sig1 = gifBytes[1];
+        gifData.Sig2 = gifBytes[2];
 
         if (gifBytes[3] != '8' || (gifBytes[4] != '7' && gifBytes[4] != '9') || gifBytes[5] != 'a')
         {
-            Logging.LogError("GIF version error. Only GIF87a or GIF89a are supported.");
+            Witchcraft.Instance!.Error("GIF version error. Only GIF87a or GIF89a are supported.");
             return false;
         }
 
-        gifData.m_ver0 = gifBytes[3];
-        gifData.m_ver1 = gifBytes[4];
-        gifData.m_ver2 = gifBytes[5];
+        gifData.Ver0 = gifBytes[3];
+        gifData.Ver1 = gifBytes[4];
+        gifData.Ver2 = gifBytes[5];
 
         gifData.ScreenWidth = BitConverter.ToUInt16(gifBytes, 6);
         gifData.ScreenHeight = BitConverter.ToUInt16(gifBytes, 8);
 
         gifData.GlobalColorTableFlag = (gifBytes[10] & 128) == 128;
 
-        gifData.m_colorResolution = (gifBytes[10] & 112) switch
+        gifData.ColorResolution = (gifBytes[10] & 112) switch
         {
             112 => 8,
             96 => 7,
@@ -123,26 +69,26 @@ public static class GifLoader
             _ => 1,
         };
 
-        gifData.m_sortFlag = (gifBytes[10] & 8) == 8;
-        gifData.m_sizeOfGlobalColorTable = (int)Math.Pow(2, (gifBytes[10] & 7) + 1);
-        gifData.m_bgColorIndex = gifBytes[11];
-        gifData.m_pixelAspectRatio = gifBytes[12];
+        gifData.SortFlag = (gifBytes[10] & 8) == 8;
+        gifData.SizeOfGlobalColorTable = (int)Math.Pow(2, (gifBytes[10] & 7) + 1);
+        gifData.BGColorIndex = gifBytes[11];
+        gifData.PixelAspectRatio = gifBytes[12];
         byteIndex = 13;
 
         if (gifData.GlobalColorTableFlag)
         {
-            gifData.m_globalColorTable = [];
+            gifData.GlobalColorTable = [];
 
-            for (var i = byteIndex; i < byteIndex + (gifData.m_sizeOfGlobalColorTable * 3); i += 3)
-                gifData.m_globalColorTable.Add([ gifBytes[i], gifBytes[i + 1], gifBytes[i + 2] ]);
+            for (var i = byteIndex; i < byteIndex + (gifData.SizeOfGlobalColorTable * 3); i += 3)
+                gifData.GlobalColorTable.Add([ gifBytes[i], gifBytes[i + 1], gifBytes[i + 2] ]);
 
-            byteIndex = byteIndex + (gifData.m_sizeOfGlobalColorTable * 3);
+            byteIndex = byteIndex + (gifData.SizeOfGlobalColorTable * 3);
         }
 
         return true;
     }
 
-    private static bool SetGifBlock(byte[] gifBytes, ref int byteIndex, ref GifData gifData)
+    public static bool SetGifBlock(byte[] gifBytes, ref int byteIndex, ref GifData gifData)
     {
         try
         {
@@ -180,14 +126,14 @@ public static class GifLoader
                 }
                 else if (gifBytes[nowIndex] == 0x3b)
                 {
-                    gifData.m_trailer = gifBytes[byteIndex];
+                    gifData.Trailer = gifBytes[byteIndex];
                     byteIndex++;
                     break;
                 }
 
                 if (lastIndex == nowIndex)
                 {
-                    Logging.LogError($"Infinite loop detected in GIF block data.");
+                    Witchcraft.Instance!.Error($"Infinite loop detected in GIF block data.");
                     return false;
                 }
 
@@ -196,48 +142,48 @@ public static class GifLoader
         }
         catch (Exception ex)
         {
-            Logging.LogError($"{ex.Message}");
+            Witchcraft.Instance!.Error($"{ex.Message}");
             return false;
         }
 
         return true;
     }
 
-    private static void SetImageBlock(byte[] gifBytes, ref int byteIndex, ref GifData gifData)
+    public static void SetImageBlock(byte[] gifBytes, ref int byteIndex, ref GifData gifData)
     {
-        var ib = new ImageBlock() { m_imageSeparator = gifBytes[byteIndex] };
+        var ib = new ImageBlock() { ImageSeparator = gifBytes[byteIndex] };
         byteIndex++;
 
-        ib.m_imageLeftPosition = BitConverter.ToUInt16(gifBytes, byteIndex);
+        ib.ImageLeftPosition = BitConverter.ToUInt16(gifBytes, byteIndex);
         byteIndex += 2;
 
-        ib.m_imageTopPosition = BitConverter.ToUInt16(gifBytes, byteIndex);
+        ib.ImageTopPosition = BitConverter.ToUInt16(gifBytes, byteIndex);
         byteIndex += 2;
 
-        ib.m_imageWidth = BitConverter.ToUInt16(gifBytes, byteIndex);
+        ib.ImageWidth = BitConverter.ToUInt16(gifBytes, byteIndex);
         byteIndex += 2;
 
-        ib.m_imageHeight = BitConverter.ToUInt16(gifBytes, byteIndex);
+        ib.ImageHeight = BitConverter.ToUInt16(gifBytes, byteIndex);
         byteIndex += 2;
 
-        ib.m_localColorTableFlag = (gifBytes[byteIndex] & 128) == 128;
-        ib.m_interlaceFlag = (gifBytes[byteIndex] & 64) == 64;
-        ib.m_sortFlag = (gifBytes[byteIndex] & 32) == 32;
+        ib.LocalColorTableFlag = (gifBytes[byteIndex] & 128) == 128;
+        ib.InterlaceFlag = (gifBytes[byteIndex] & 64) == 64;
+        ib.SortFlag = (gifBytes[byteIndex] & 32) == 32;
 
-        ib.m_sizeOfLocalColorTable = (int)Math.Pow(2, (gifBytes[byteIndex] & 7) + 1);
+        ib.SizeOfLocalColorTable = (int)Math.Pow(2, (gifBytes[byteIndex] & 7) + 1);
         byteIndex++;
 
-        if (ib.m_localColorTableFlag)
+        if (ib.LocalColorTableFlag)
         {
-            ib.m_localColorTable = [];
+            ib.LocalColorTable = [];
 
-            for (var i = byteIndex; i < byteIndex + (ib.m_sizeOfLocalColorTable * 3); i += 3)
-                ib.m_localColorTable.Add([ gifBytes[i], gifBytes[i + 1], gifBytes[i + 2] ]);
+            for (var i = byteIndex; i < byteIndex + (ib.SizeOfLocalColorTable * 3); i += 3)
+                ib.LocalColorTable.Add([ gifBytes[i], gifBytes[i + 1], gifBytes[i + 2] ]);
 
-            byteIndex = byteIndex + (ib.m_sizeOfLocalColorTable * 3);
+            byteIndex = byteIndex + (ib.SizeOfLocalColorTable * 3);
         }
 
-        ib.m_lzwMinimumCodeSize = gifBytes[byteIndex];
+        ib.LzwMinimumCodeSize = gifBytes[byteIndex];
         byteIndex++;
 
         while (true)
@@ -250,70 +196,70 @@ public static class GifLoader
 
             var imageDataBlock = new DataBlock()
             {
-                m_blockSize = blockSize,
-                m_data = new byte[blockSize]
+                BlockSize = blockSize,
+                Data = new byte[blockSize],
             };
 
-            for (var i = 0; i < imageDataBlock.m_data.Length; i++)
+            for (var i = 0; i < imageDataBlock.Data.Length; i++)
             {
-                imageDataBlock.m_data[i] = gifBytes[byteIndex];
+                imageDataBlock.Data[i] = gifBytes[byteIndex];
                 byteIndex++;
             }
 
-            if (ib.m_imageDataList == null)
-                ib.m_imageDataList = [];
+            if (ib.ImageDataList == null)
+                ib.ImageDataList = [];
 
-            ib.m_imageDataList.Add(imageDataBlock);
+            ib.ImageDataList.Add(imageDataBlock);
         }
 
-        if (gifData.m_imageBlockList == null)
-            gifData.m_imageBlockList = [];
+        if (gifData.ImageBlockList == null)
+            gifData.ImageBlockList = [];
 
-        gifData.m_imageBlockList.Add(ib);
+        gifData.ImageBlockList.Add(ib);
     }
 
-    private static void SetGraphicControlExtension(byte[] gifBytes, ref int byteIndex, ref GifData gifData)
+    public static void SetGraphicControlExtension(byte[] gifBytes, ref int byteIndex, ref GifData gifData)
     {
-        var gcEx = new GraphicControlExtension() {  m_extensionIntroducer = gifBytes[byteIndex] };
+        var gcEx = new GraphicControlExtension() { ExtensionIntroducer = gifBytes[byteIndex] };
         byteIndex++;
 
-        gcEx.m_graphicControlLabel = gifBytes[byteIndex];
+        gcEx.GraphicControlLabel = gifBytes[byteIndex];
         byteIndex++;
 
-        gcEx.m_blockSize = gifBytes[byteIndex];
+        gcEx.BlockSize = gifBytes[byteIndex];
         byteIndex++;
 
-        gcEx.m_disposalMethod = (gifBytes[byteIndex] & 28) switch
+        gcEx.DisposalMethod = (gifBytes[byteIndex] & 28) switch
         {
             4 => 1,
             8 => 2,
             12 => 3,
             _ => 0,
         };
-        gcEx.m_transparentColorFlag = (gifBytes[byteIndex] & 1) == 1;
+        gcEx.TransparentColorFlag = (gifBytes[byteIndex] & 1) == 1;
         byteIndex++;
 
-        gcEx.m_delayTime = BitConverter.ToUInt16(gifBytes, byteIndex);
+        gcEx.DelayTime = BitConverter.ToUInt16(gifBytes, byteIndex);
         byteIndex += 2;
 
-        gcEx.m_transparentColorIndex = gifBytes[byteIndex];
+        gcEx.TransparentColorIndex = gifBytes[byteIndex];
         byteIndex++;
 
-        gcEx.m_blockTerminator = gifBytes[byteIndex];
+        gcEx.BlockTerminator = gifBytes[byteIndex];
         byteIndex++;
 
-        if (gifData.m_graphicCtrlExList == null)
-            gifData.m_graphicCtrlExList = [];
+        if (gifData.GraphicCtrlExList == null)
+            gifData.GraphicCtrlExList = [];
 
-        gifData.m_graphicCtrlExList.Add(gcEx);
+        gifData.GraphicCtrlExList.Add(gcEx);
     }
 
-    private static void SetCommentExtension(byte[] gifBytes, ref int byteIndex, ref GifData gifData)
+    public static void SetCommentExtension(byte[] gifBytes, ref int byteIndex, ref GifData gifData)
     {
-        var commentEx = new CommentExtension() { m_extensionIntroducer = gifBytes[byteIndex] };
+        var commentEx = new CommentExtension() { ExtensionIntroducer = gifBytes[byteIndex] };
         byteIndex++;
 
-        commentEx.m_commentLabel = gifBytes[byteIndex];
+        commentEx.CommentLabel = gifBytes[byteIndex];
         byteIndex++;
 
         while (true)
@@ -326,37 +272,37 @@ public static class GifLoader
 
             var commentDataBlock = new DataBlock()
             {
-                m_blockSize = blockSize,
-                m_data = new byte[blockSize]
+                BlockSize = blockSize,
+                Data = new byte[blockSize],
             };
 
-            for (var i = 0; i < commentDataBlock.m_data.Length; i++)
+            for (var i = 0; i < commentDataBlock.Data.Length; i++)
             {
-                commentDataBlock.m_data[i] = gifBytes[byteIndex];
+                commentDataBlock.Data[i] = gifBytes[byteIndex];
                 byteIndex++;
             }
 
-            if (commentEx.m_commentDataList == null)
-                commentEx.m_commentDataList = [];
+            if (commentEx.CommentDataList == null)
+                commentEx.CommentDataList = [];
 
-            commentEx.m_commentDataList.Add(commentDataBlock);
+            commentEx.CommentDataList.Add(commentDataBlock);
         }
 
-        if (gifData.m_commentExList == null)
-            gifData.m_commentExList = [];
+        if (gifData.CommentExList == null)
+            gifData.CommentExList = [];
 
-        gifData.m_commentExList.Add(commentEx);
+        gifData.CommentExList.Add(commentEx);
     }
 
-    private static void SetPlainTextExtension(byte[] gifBytes, ref int byteIndex, ref GifData gifData)
+    public static void SetPlainTextExtension(byte[] gifBytes, ref int byteIndex, ref GifData gifData)
     {
-        var plainTxtEx = new PlainTextExtension() { m_extensionIntroducer = gifBytes[byteIndex] };
+        var plainTxtEx = new PlainTextExtension() { ExtensionIntroducer = gifBytes[byteIndex] };
         byteIndex++;
 
-        plainTxtEx.m_plainTextLabel = gifBytes[byteIndex];
+        plainTxtEx.PlainTextLabel = gifBytes[byteIndex];
         byteIndex++;
 
-        plainTxtEx.m_blockSize = gifBytes[byteIndex];
+        plainTxtEx.BlockSize = gifBytes[byteIndex];
         byteIndex += 13;
 
         while (true)
@@ -371,70 +317,70 @@ public static class GifLoader
 
             var plainTextDataBlock = new DataBlock()
             {
-                m_blockSize = blockSize,
-                m_data = new byte[blockSize]
+                BlockSize = blockSize,
+                Data = new byte[blockSize],
             };
 
-            for (var i = 0; i < plainTextDataBlock.m_data.Length; i++)
+            for (var i = 0; i < plainTextDataBlock.Data.Length; i++)
             {
-                plainTextDataBlock.m_data[i] = gifBytes[byteIndex];
+                plainTextDataBlock.Data[i] = gifBytes[byteIndex];
                 byteIndex++;
             }
 
-            if (plainTxtEx.m_plainTextDataList == null)
-                plainTxtEx.m_plainTextDataList = [];
+            if (plainTxtEx.PlainTextDataList == null)
+                plainTxtEx.PlainTextDataList = [];
 
-            plainTxtEx.m_plainTextDataList.Add(plainTextDataBlock);
+            plainTxtEx.PlainTextDataList.Add(plainTextDataBlock);
         }
 
-        if (gifData.m_plainTextExList == null)
-            gifData.m_plainTextExList = [];
+        if (gifData.PlainTextExList == null)
+            gifData.PlainTextExList = [];
 
-        gifData.m_plainTextExList.Add(plainTxtEx);
+        gifData.PlainTextExList.Add(plainTxtEx);
     }
 
-    private static void SetApplicationExtension(byte[] gifBytes, ref int byteIndex, ref GifData gifData)
+    public static void SetApplicationExtension(byte[] gifBytes, ref int byteIndex, ref GifData gifData)
     {
-        gifData.m_appEx.m_extensionIntroducer = gifBytes[byteIndex];
+        gifData.AppEx.ExtensionIntroducer = gifBytes[byteIndex];
         byteIndex++;
 
-        gifData.m_appEx.m_extensionLabel = gifBytes[byteIndex];
+        gifData.AppEx.ExtensionLabel = gifBytes[byteIndex];
         byteIndex++;
 
-        gifData.m_appEx.m_blockSize = gifBytes[byteIndex];
+        gifData.AppEx.BlockSize = gifBytes[byteIndex];
         byteIndex++;
 
-        gifData.m_appEx.m_appId1 = gifBytes[byteIndex];
+        gifData.AppEx.AppId1 = gifBytes[byteIndex];
         byteIndex++;
 
-        gifData.m_appEx.m_appId2 = gifBytes[byteIndex];
+        gifData.AppEx.AppId2 = gifBytes[byteIndex];
         byteIndex++;
 
-        gifData.m_appEx.m_appId3 = gifBytes[byteIndex];
+        gifData.AppEx.AppId3 = gifBytes[byteIndex];
         byteIndex++;
 
-        gifData.m_appEx.m_appId4 = gifBytes[byteIndex];
+        gifData.AppEx.AppId4 = gifBytes[byteIndex];
         byteIndex++;
 
-        gifData.m_appEx.m_appId5 = gifBytes[byteIndex];
+        gifData.AppEx.AppId5 = gifBytes[byteIndex];
         byteIndex++;
 
-        gifData.m_appEx.m_appId6 = gifBytes[byteIndex];
+        gifData.AppEx.AppId6 = gifBytes[byteIndex];
         byteIndex++;
 
-        gifData.m_appEx.m_appId7 = gifBytes[byteIndex];
+        gifData.AppEx.AppId7 = gifBytes[byteIndex];
         byteIndex++;
 
-        gifData.m_appEx.m_appId8 = gifBytes[byteIndex];
+        gifData.AppEx.AppId8 = gifBytes[byteIndex];
         byteIndex++;
 
-        gifData.m_appEx.m_appAuthCode1 = gifBytes[byteIndex];
+        gifData.AppEx.AppAuthCode1 = gifBytes[byteIndex];
         byteIndex++;
 
-        gifData.m_appEx.m_appAuthCode2 = gifBytes[byteIndex];
+        gifData.AppEx.AppAuthCode2 = gifBytes[byteIndex];
         byteIndex++;
 
-        gifData.m_appEx.m_appAuthCode3 = gifBytes[byteIndex];
+        gifData.AppEx.AppAuthCode3 = gifBytes[byteIndex];
         byteIndex++;
 
         while (true)
@@ -447,121 +393,108 @@ public static class GifLoader
 
             var appDataBlock = new DataBlock()
             {
-                m_blockSize = blockSize,
-                m_data = new byte[blockSize]
+                BlockSize = blockSize,
+                Data = new byte[blockSize],
             };
 
-            for (var i = 0; i < appDataBlock.m_data.Length; i++)
+            for (var i = 0; i < appDataBlock.Data.Length; i++)
             {
-                appDataBlock.m_data[i] = gifBytes[byteIndex];
+                appDataBlock.Data[i] = gifBytes[byteIndex];
                 byteIndex++;
             }
 
-            if (gifData.m_appEx.m_appDataList == null)
-                gifData.m_appEx.m_appDataList = [];
+            if (gifData.AppEx.AppDataList == null)
+                gifData.AppEx.AppDataList = [];
 
-            gifData.m_appEx.m_appDataList.Add(appDataBlock);
+            gifData.AppEx.AppDataList.Add(appDataBlock);
         }
     }
 
-    private static byte[] GetDecodedData(ImageBlock imgBlock)
+    public static byte[] GetDecodedData(ImageBlock imgBlock)
     {
         var lzwData = new List<byte>();
 
-        foreach (var delList in imgBlock.m_imageDataList)
+        foreach (var delList in imgBlock.ImageDataList)
         {
-            foreach (var imgDelta in delList.m_data)
+            foreach (var imgDelta in delList.Data)
                 lzwData.Add(imgDelta);
         }
 
-        var decodedData = DecodeGifLZW(lzwData, imgBlock.m_lzwMinimumCodeSize, imgBlock.m_imageHeight * imgBlock.m_imageWidth);
+        var decodedData = DecodeGifLZW(lzwData, imgBlock.LzwMinimumCodeSize, imgBlock.ImageHeight * imgBlock.ImageWidth);
 
-        if (imgBlock.m_interlaceFlag)
-            decodedData = SortInterlaceGifData(decodedData, imgBlock.m_imageWidth);
+        if (imgBlock.InterlaceFlag)
+            decodedData = SortInterlaceGifData(decodedData, imgBlock.ImageWidth);
 
         return decodedData;
     }
 
-    private static List<byte[]> GetColorTableAndSetBgColor(GifData gifData, ImageBlock imgBlock, int transparentIndex, out Color32 bgColor)
+    public static List<byte[]> GetColorTableAndSetBgColor(GifData gifData, ImageBlock imgBlock, int transparentIndex, out Color32 bgColor)
     {
-        var colorTable = imgBlock.m_localColorTableFlag ? imgBlock.m_localColorTable : (gifData.GlobalColorTableFlag ? gifData.m_globalColorTable : null);
+        var colorTable = imgBlock.LocalColorTableFlag ? imgBlock.LocalColorTable : (gifData.GlobalColorTableFlag ? gifData.GlobalColorTable : null);
 
         if (colorTable != null)
         {
-            bgColor = new()
-            {
-                r = colorTable[gifData.m_bgColorIndex][0],
-                g = colorTable[gifData.m_bgColorIndex][1],
-                b = colorTable[gifData.m_bgColorIndex][2],
-                a = (byte)(transparentIndex == gifData.m_bgColorIndex ? 0 : 255)
-            };
+            bgColor = new(colorTable[gifData.BGColorIndex][0], colorTable[gifData.BGColorIndex][1], colorTable[gifData.BGColorIndex][2],
+                (byte)(transparentIndex == gifData.BGColorIndex ? 0 : 255));
         }
         else
-        {
-            bgColor = new()
-            {
-                r = 0,
-                g = 0,
-                b = 0,
-                a = 255
-            };
-        }
+            bgColor = new(0, 0, 0, 255);
 
         return colorTable!;
     }
 
-    private static GraphicControlExtension? GetGraphicCtrlExt(GifData gifData, int imgBlockIndex)
+    public static GraphicControlExtension? GetGraphicCtrlExt(GifData gifData, int imgBlockIndex)
     {
-        if (gifData.m_graphicCtrlExList != null && gifData.m_graphicCtrlExList.Count > imgBlockIndex)
-            return gifData.m_graphicCtrlExList[imgBlockIndex];
+        if (gifData.GraphicCtrlExList != null && gifData.GraphicCtrlExList.Count > imgBlockIndex)
+            return gifData.GraphicCtrlExList[imgBlockIndex];
 
         return null;
     }
 
-    private static int GetTransparentIndex(GraphicControlExtension? graphicCtrlEx)
+    public static int GetTransparentIndex(GraphicControlExtension? graphicCtrlEx)
     {
         var transparentIndex = -1;
 
-        if (graphicCtrlEx != null && graphicCtrlEx.Value.m_transparentColorFlag)
-            transparentIndex = graphicCtrlEx.Value.m_transparentColorIndex;
+        if (graphicCtrlEx != null && graphicCtrlEx.Value.TransparentColorFlag)
+            transparentIndex = graphicCtrlEx.Value.TransparentColorIndex;
 
         return transparentIndex;
     }
 
-    // private static float GetDelaySec(GraphicControlExtension? graphicCtrlEx)
-    // {
-    //     var delaySec = graphicCtrlEx != null ? graphicCtrlEx.Value.m_delayTime / 100f : (1f / 60f);
+    /*public static float GetDelaySec(GraphicControlExtension? graphicCtrlEx)
+    {
+        var delaySec = graphicCtrlEx != null ? graphicCtrlEx.Value.DelayTime / 100f : (1f / 60f);
 
-    //     if (delaySec <= 0f)
-    //         delaySec = 0.1f;
+        if (delaySec <= 0f)
+            delaySec = 0.1f;
 
-    //     return delaySec;
-    // }
+        return delaySec;
+    }
 
-    // private static ushort GetDisposalMethod(GraphicControlExtension? graphicCtrlEx) => graphicCtrlEx != null ? graphicCtrlEx.Value.m_disposalMethod : (ushort)2;
+    public static ushort GetDisposalMethod(GraphicControlExtension? graphicCtrlEx) => graphicCtrlEx != null ? graphicCtrlEx.Value.DisposalMethod : (ushort)2;*/
 
-    private static Color32[] GetTextureData(byte[] gifData, Color32 backgroundColor, List<byte[]> colorTable, int transparentIndex, ImageBlock imageBlock)
+    public static Color32[] GetTextureData(byte[] gifData, Color32 backgroundColor, List<byte[]> colorTable, int transparentIndex, ImageBlock imageBlock)
     {
         var dataIndex = 0;
-        var pixelData = new Color32[imageBlock.m_imageHeight * imageBlock.m_imageWidth];
+        var pixelData = new Color32[imageBlock.ImageHeight * imageBlock.ImageWidth];
 
-        for (var y = imageBlock.m_imageHeight - 1; y >= 0; y--)
+        for (var y = imageBlock.ImageHeight - 1; y >= 0; y--)
         {
-            for (var x = 0; x < imageBlock.m_imageWidth; x++)
+            for (var x = 0; x < imageBlock.ImageWidth; x++)
             {
-                if (y < imageBlock.m_imageTopPosition || y >= imageBlock.m_imageTopPosition + imageBlock.m_imageHeight || x < imageBlock.m_imageLeftPosition || x >=
-                    imageBlock.m_imageLeftPosition + imageBlock.m_imageWidth)
+                if (y < imageBlock.ImageTopPosition || y >= imageBlock.ImageTopPosition + imageBlock.ImageHeight || x < imageBlock.ImageLeftPosition || x >=
+                    imageBlock.ImageLeftPosition + imageBlock.ImageWidth)
                 {
-                    pixelData[x + y * imageBlock.m_imageWidth] = new(backgroundColor.r, backgroundColor.g, backgroundColor.b, backgroundColor.a);
+                    pixelData[x + y * imageBlock.ImageWidth] = new(backgroundColor.r, backgroundColor.g, backgroundColor.b, backgroundColor.a);
                     continue;
                 }
 
                 if (dataIndex >= gifData.Length)
                 {
-                    pixelData[x + y * imageBlock.m_imageWidth] = new(backgroundColor.r, backgroundColor.g, backgroundColor.b, backgroundColor.a);
+                    pixelData[x + y * imageBlock.ImageWidth] = new(backgroundColor.r, backgroundColor.g, backgroundColor.b, backgroundColor.a);
 
                     if (dataIndex == gifData.Length)
-                        Logging.LogError($"dataIndex exceeded the size of decodedData. dataIndex: {dataIndex} decodedData.Length: {gifData.Length} y: {y} x: {x}");
+                        Witchcraft.Instance!.Error($"dataIndex exceeded the size of decodedData. dataIndex: {dataIndex} decodedData.Length: {gifData.Length} y: {y} x: {x}");
 
                     dataIndex++;
                     continue;
@@ -571,12 +504,12 @@ public static class GifLoader
 
                 if (colorTable == null || colorTable.Count <= colorIndex)
                 {
-                    pixelData[x + y * imageBlock.m_imageWidth] = new(backgroundColor.r, backgroundColor.g, backgroundColor.b, backgroundColor.a);
+                    pixelData[x + y * imageBlock.ImageWidth] = new(backgroundColor.r, backgroundColor.g, backgroundColor.b, backgroundColor.a);
 
                     if (colorTable == null)
-                        Logging.LogError($"colorIndex exceeded the size of colorTable. colorTable is null. colorIndex: {colorIndex}");
+                        Witchcraft.Instance!.Error($"colorIndex exceeded the size of colorTable. colorTable is null. colorIndex: {colorIndex}");
                     else
-                        Logging.LogError($"colorIndex exceeded the size of colorTable. colorTable.Count: {colorTable.Count}. colorIndex: {colorIndex}");
+                        Witchcraft.Instance!.Error($"colorIndex exceeded the size of colorTable. colorTable.Count: {colorTable.Count}. colorIndex: {colorIndex}");
 
                     dataIndex++;
                     continue;
@@ -584,7 +517,7 @@ public static class GifLoader
 
                 var rgb = colorTable[colorIndex];
                 var alpha = transparentIndex >= 0 && transparentIndex == colorIndex ? (byte)0 : (byte)255;
-                pixelData[x + y * imageBlock.m_imageWidth] = new(rgb[0], rgb[1], rgb[2], alpha);
+                pixelData[x + y * imageBlock.ImageWidth] = new(rgb[0], rgb[1], rgb[2], alpha);
                 dataIndex++;
             }
         }
@@ -592,7 +525,7 @@ public static class GifLoader
         return pixelData;
     }
 
-    private static byte[] DecodeGifLZW(List<byte> compData, int lzwMinimumCodeSize, int needDataSize)
+    public static byte[] DecodeGifLZW(List<byte> compData, int lzwMinimumCodeSize, int needDataSize)
     {
         var dic = new Dictionary<int, string>();
         InitDictionary(dic, lzwMinimumCodeSize, out var lzwCodeSize, out var clearCode, out var finishCode);
@@ -602,7 +535,7 @@ public static class GifLoader
 
         var output = new byte[needDataSize];
         var outputAddIndex = 0;
-        var prevEntry = "";
+        var prevEntry = string.Empty;
         var dicInitFlag = false;
         var bitDataIndex = 0;
 
@@ -615,7 +548,7 @@ public static class GifLoader
             }
 
             var key = bitData.GetNumeral(bitDataIndex, lzwCodeSize);
-            var entry = "";
+            var entry = string.Empty;
 
             if (key == clearCode)
             {
@@ -626,30 +559,30 @@ public static class GifLoader
             }
             else if (key == finishCode)
             {
-                Logging.LogWarning($"LZW Decoding anomaly. Early stop code detected. bitDataIndex: {bitDataIndex} lzwCodeSize: {lzwCodeSize} key: {key} dic.Count: {dic.Count}");
+                Witchcraft.Instance!.Warning($"LZW Decoding anomaly. Early stop code detected. bitDataIndex: {bitDataIndex} lzwCodeSize: {lzwCodeSize} key: {key} dic.Count: {dic.Count}");
                 break;
             }
-            else if (dic.ContainsKey(key))
-                entry = dic[key];
+            else if (dic.TryGetValue(key, out var value))
+                entry = value;
             else if (key >= dic.Count)
             {
                 if (prevEntry != null)
                     entry = prevEntry + prevEntry[0];
                 else
                 {
-                    Logging.LogWarning($"LZW Decoding anomaly. Current key did not match previous conditions. bitDataIndex: {bitDataIndex} lzwCodeSize: {lzwCodeSize} key: {key} dic.Count: {dic.Count}");
+                    Witchcraft.Instance!.Warning($"LZW Decoding anomaly. Current key did not match previous conditions. bitDataIndex: {bitDataIndex} lzwCodeSize: {lzwCodeSize} key: {key} dic.Count: {dic.Count}");
                     bitDataIndex += lzwCodeSize;
                     continue;
                 }
             }
             else
             {
-                Logging.LogWarning($"LZW Decoding anomaly. Current key did not match previous conditions. bitDataIndex: {bitDataIndex} lzwCodeSize: {lzwCodeSize} key: {key} dic.Count: {dic.Count}");
+                Witchcraft.Instance!.Warning($"LZW Decoding anomaly. Current key did not match previous conditions. bitDataIndex: {bitDataIndex} lzwCodeSize: {lzwCodeSize} key: {key} dic.Count: {dic.Count}");
                 bitDataIndex += lzwCodeSize;
                 continue;
             }
 
-            var  temp = Encoding.Unicode.GetBytes(entry);
+            var temp = Encoding.Unicode.GetBytes(entry);
 
             for (var i = 0; i < temp.Length; i++)
             {
@@ -687,17 +620,14 @@ public static class GifLoader
                 lzwCodeSize = 11;
             else if (lzwCodeSize == 11 && dic.Count >= 2048)
                 lzwCodeSize = 12;
-            else if (lzwCodeSize == 12 && dic.Count >= 4096)
-            {
-                if (bitData.GetNumeral(bitDataIndex, lzwCodeSize) != clearCode)
-                    dicInitFlag = true;
-            }
+            else if (lzwCodeSize == 12 && dic.Count >= 4096 && bitData.GetNumeral(bitDataIndex, lzwCodeSize) != clearCode)
+                dicInitFlag = true;
         }
 
         return output;
     }
 
-    private static void InitDictionary(Dictionary<int, string> dic, int lzwMinimumCodeSize, out int lzwCodeSize, out int clearCode, out int finishCode)
+    public static void InitDictionary(Dictionary<int, string> dic, int lzwMinimumCodeSize, out int lzwCodeSize, out int clearCode, out int finishCode)
     {
         var dicLength = (int)Math.Pow(2, lzwMinimumCodeSize);
 
@@ -711,7 +641,7 @@ public static class GifLoader
         lzwCodeSize = lzwMinimumCodeSize + 1;
     }
 
-    private static byte[] SortInterlaceGifData(byte[] decodedData, int xNum)
+    public static byte[] SortInterlaceGifData(byte[] decodedData, int xNum)
     {
         var rowNo = 0;
         var dataIndex = 0;
@@ -772,34 +702,5 @@ public static class GifLoader
         }
 
         return newArr;
-    }
-
-    public static int GetNumeral(this BitArray array, int startIndex, int bitLength)
-    {
-        var newArray = new BitArray(bitLength);
-
-        for (var i = 0; i < bitLength; i++)
-            newArray[i] = array.Length > startIndex + i && array.Get(startIndex + i);
-
-        return newArray.ToNumeral();
-    }
-
-    public static int ToNumeral(this BitArray array)
-    {
-        if (array == null)
-        {
-            Debug.LogError("Array is nothing.");
-            return 0;
-        }
-
-        if (array.Length > 32)
-        {
-            Debug.LogError("Must be at most 32 bits long.");
-            return 0;
-        }
-
-        var result = new int[1];
-        array.CopyTo(result, 0);
-        return result[0];
     }
 }
