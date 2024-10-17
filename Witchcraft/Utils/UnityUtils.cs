@@ -14,6 +14,12 @@ public static class UnityUtils
         return obj;
     }
 
+    public static T CanUnload<T>(this T obj) where T : UObject
+    {
+        obj.hideFlags |= HideFlags.None;
+        return obj;
+    }
+
     public static T DontDestroyOnLoad<T>(this T obj) where T : UObject
     {
         UObject.DontDestroyOnLoad(obj);

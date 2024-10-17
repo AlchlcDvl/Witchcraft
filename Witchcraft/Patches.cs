@@ -12,6 +12,7 @@ public static class ExitGamePatch
 }
 
 [HarmonyPatch(typeof(HomeLocalizationService), nameof(HomeLocalizationService.RebuildStringTables))]
+[HarmonyBefore("curtis.text.editor")]
 public static class DumpStringTables
 {
     public static void Postfix(HomeLocalizationService __instance)
