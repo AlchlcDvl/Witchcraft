@@ -9,7 +9,7 @@ public class AssetManager
     public Dictionary<string, string> ObjectToBundle { get; set; } = [];
     public Dictionary<string, List<UObject>> UnityLoadedObjects { get; set; } = [];
     public Dictionary<string, List<object>> SystemLoadedObjects { get; set; } = [];
-    public Dictionary<string, string> Xmls { get; set; } = [];
+    public string? Xml { get; set; }
 
     public string Name { get; }
     private Assembly Core { get; }
@@ -44,7 +44,7 @@ public class AssetManager
             else if (resourceName.EndsWithAny([".gif"]))
                 AddSystemAsset(name1, LoadGifFromResources(resourceName));
             else if (resourceName.EndsWithAny([".xml"]))
-                Xmls[name1] = LoadTextFromResources(resourceName);
+                Xml = LoadTextFromResources(resourceName);
             else if (!Bundles.ContainsKey(name1) && BundleNames.Contains(name1))
                 Bundles[name1] = LoadBundleFromResources(resourceName);
         }
@@ -53,7 +53,7 @@ public class AssetManager
         AssetLogs.Message("Assets loaded!");
     }
 
-    public T? UnityGet<T>(string name) where T : UObject
+    public T? UnityGet<T>(string name, bool fetchPlaceholder = false) where T : UObject
     {
         var tType = typeof(T);
 
@@ -63,30 +63,34 @@ public class AssetManager
         if (ObjectToBundle.TryGetValue(name.ToLower(CultureInfo.CurrentCulture), out var bundle))
             return LoadAsset<T>(Bundles[bundle], name);
 
-        if (name != "Placeholder")
+        if (name != "Placeholder" && fetchPlaceholder)
         {
             AssetLogs.Debug($"Could not find {name} for type {tType.Name}, attempting to find placeholder");
-            return UnityGet<T>("Placeholder");
+            return UnityGet<T>("Placeholder", true);
         }
 
-        AssetLogs.Debug($"No placholder for type {tType.Name}");
+        if (fetchPlaceholder)
+            AssetLogs.Debug($"No placholder for type {tType.Name}");
+
         return null;
     }
 
-    public T? SystemGet<T>(string name)
+    public T? SystemGet<T>(string name, bool fetchPlaceholder = false)
     {
         var tType = typeof(T);
 
         if (SystemLoadedObjects.TryGetValue(name, out var objList) && objList.TryFinding(x => x.GetType().IsRelated(tType), out var result))
             return (T)result!;
 
-        if (name != "Placeholder")
+        if (name != "Placeholder" && fetchPlaceholder)
         {
             AssetLogs.Debug($"Could not find {name} for type {tType.Name}, attempting to find placeholder");
-            return SystemGet<T>("Placeholder");
+            return SystemGet<T>("Placeholder", true);
         }
 
-        AssetLogs.Debug($"No placholder for type {tType.Name}");
+        if (fetchPlaceholder)
+            AssetLogs.Debug($"No placholder for type {tType.Name}");
+
         return default;
     }
 
@@ -192,21 +196,20 @@ public class AssetManager
 
     public Sprite LoadSpriteFromResources(string path, float ppu = 100f, SpriteMeshType spriteType = SpriteMeshType.Tight) => LoadSpriteFromResources(path, Core, ppu, spriteType);
 
-    public static AudioClip LoadAudioFromDisk(string path) => CreateAudio(path.SanitisePath(), File.OpenRead(path));
+    public static AudioClip LoadAudioFromDisk(string path) => CreateAudio(path.SanitisePath(), File.ReadAllBytes(path));
 
-    public static AudioClip LoadAudioFromResources(string path, Assembly core) => CreateAudio(path.SanitisePath(), core.GetManifestResourceStream(path));
+    public static AudioClip LoadAudioFromResources(string path, Assembly core) => CreateAudio(path.SanitisePath(), core.GetManifestResourceStream(path).ReadFully());
 
     public static AudioClip LoadAudioFromResourcesStatic(string path) => LoadAudioFromResources(path, Assembly.GetCallingAssembly());
 
     public AudioClip LoadAudioFromResources(string path) => LoadAudioFromResources(path, Core);
 
-    public static AudioClip CreateAudio(string name, Stream stream)
+    public static AudioClip CreateAudio(string name, byte[] data)
     {
-        var byteAudio = stream.ReadFully();
-        var samples = new float[byteAudio.Length / 4];
+        var samples = new float[data.Length / 4];
 
         for (var i = 0; i < samples.Length; i++)
-            samples[i] = (float)BitConverter.ToInt32(byteAudio, i * 4) / int.MaxValue;
+            samples[i] = (float)BitConverter.ToInt32(data, i * 4) / int.MaxValue;
 
         var audioClip = AudioClip.Create(name, samples.Length / 2, 2, 48000, false);
         audioClip.SetData(samples, 0);
@@ -262,21 +265,21 @@ public class AssetManager
 
     public static string ConvertToBaseName(string name) => name.Split('/')[^1].Split('.')[0];
 
-    public string? GetString(string path) => SystemGet<string>(path);
+    public string? GetString(string path, bool fetchPlaceholder = false) => SystemGet<string>(path, fetchPlaceholder);
 
-    public Sprite? GetSprite(string path) => UnityGet<Sprite>(path);
+    public Sprite? GetSprite(string path, bool fetchPlaceholder = false) => UnityGet<Sprite>(path, fetchPlaceholder);
 
-    public AudioClip? GetAudio(string path) => UnityGet<AudioClip>(path);
+    public AudioClip? GetAudio(string path, bool fetchPlaceholder = false) => UnityGet<AudioClip>(path, fetchPlaceholder);
 
-    public Gif? GetGif(string path) => SystemGet<Gif>(path);
+    public Gif? GetGif(string path, bool fetchPlaceholder = false) => SystemGet<Gif>(path, fetchPlaceholder);
 
-    public Material? GetMaterial(string path) => UnityGet<Material>(path);
+    public Material? GetMaterial(string path, bool fetchPlaceholder = false) => UnityGet<Material>(path, fetchPlaceholder);
 
-    public GameObject? GetGameObject(string path) => UnityGet<GameObject>(path);
+    public GameObject? GetGameObject(string path, bool fetchPlaceholder = false) => UnityGet<GameObject>(path, fetchPlaceholder);
 
     public static Stream GetStream(string path, StreamType type, Assembly core = null!) => type switch
     {
-        StreamType.Disk => File.OpenRead(path),
+        StreamType.Disk => File.OpenRead(path) ?? throw new FileNotFoundException(path),
         _ => core?.GetManifestResourceStream(path) ?? throw new FileNotFoundException(path)
     };
 

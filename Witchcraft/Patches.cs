@@ -12,33 +12,34 @@ public static class ExitGamePatch
 }
 
 [HarmonyPatch(typeof(HomeLocalizationService), nameof(HomeLocalizationService.RebuildStringTables))]
-[HarmonyBefore("curtis.text.editor")]
+[HarmonyPriority(Priority.First)]
 public static class DumpStringTables
 {
     public static void Postfix(HomeLocalizationService __instance)
     {
         foreach (var manager in AssetManager.Managers)
         {
-            foreach (var xml in manager.Xmls)
+            if (StringUtils.IsNullEmptyOrWhiteSpace(manager.Xml))
+                continue;
+
+            Witchcraft.Instance!.Message($"Loading: {manager.Name} xml");
+            var xmlDocument = new XmlDocument();
+            xmlDocument.LoadXml(manager.Xml);
+
+            foreach (var textEntry in XMLStringTable.Load(xmlDocument).entries)
             {
-                var xmlDocument = new XmlDocument();
-                xmlDocument.LoadXml(xml.Value);
+                if (!__instance.stringTable_.ContainsKey(textEntry.key))
+                    __instance.stringTable_.Add(textEntry.key, textEntry.value);
+                else
+                    Witchcraft.Instance!.Warning($"{manager.Name}: Duplicate String Table Key \"{textEntry.key}\"!");
 
-                foreach (var textEntry in XMLStringTable.Load(xmlDocument).entries)
-                {
-                    if (!__instance.stringTable_.ContainsKey(textEntry.key))
-                        __instance.stringTable_.Add(textEntry.key, textEntry.value);
-                    else
-                        Witchcraft.Instance!.Warning($"{manager.Name}; {xml.Key}: Duplicate String Table Key \"{textEntry.key}\"!");
+                if (StringUtils.IsNullEmptyOrWhiteSpace(textEntry.style))
+                    continue;
 
-                    if (!string.IsNullOrEmpty(textEntry.style))
-                    {
-                        if (!__instance.styleTable_.ContainsKey(textEntry.key))
-                            __instance.styleTable_.Add(textEntry.key, textEntry.style);
-                        else
-                            Witchcraft.Instance!.Warning($"{manager.Name}; {xml.Key}: Duplicate Style Table Key \"{textEntry.key}\"!");
-                    }
-                }
+                if (!__instance.styleTable_.ContainsKey(textEntry.key))
+                    __instance.styleTable_.Add(textEntry.key, textEntry.style);
+                else
+                    Witchcraft.Instance!.Warning($"{manager.Name}: Duplicate Style Table Key \"{textEntry.key}\"!");
             }
         }
     }

@@ -7,25 +7,29 @@ public static class GeneralUtils
 {
     public static void SaveText(string fileName, string textToSave, bool overrideText = true, string? path = null)
     {
+        path ??= Witchcraft.Instance!.ModPath;
+
         try
         {
-            File.WriteAllText(Path.Combine(path ?? Witchcraft.Instance!.ModPath, fileName), (overrideText ? string.Empty : ReadText(fileName, path!)) + textToSave);
+            File.WriteAllText(Path.Combine(path, fileName), (overrideText ? string.Empty : ReadText(fileName, path!)) + textToSave);
         }
-        catch
+        catch (Exception e)
         {
-            Witchcraft.Instance!.Error($"Unable to save to {fileName}");
+            Witchcraft.Instance!.Error($"Unable to save to {fileName}, {path}:\n{e}");
         }
     }
 
     public static string ReadText(string fileName, string? path = null)
     {
+        path ??= Witchcraft.Instance!.ModPath;
+
         try
         {
-            return File.ReadAllText(Path.Combine(path ?? Witchcraft.Instance!.ModPath, fileName));
+            return File.ReadAllText(Path.Combine(path, fileName));
         }
         catch
         {
-            Witchcraft.Instance!.Error($"Error Loading {fileName}");
+            Witchcraft.Instance!.Error($"Error reading {fileName}, {path}");
             return string.Empty;
         }
     }
@@ -76,4 +80,6 @@ public static class GeneralUtils
         array.CopyTo(result, 0);
         return result[0];
     }
+
+    public static MethodInfo? GetMethod(this Type type, Func<MethodInfo, bool> predicate) => type.GetMethods().Find(predicate);
 }

@@ -26,10 +26,9 @@ public class LogManager
 
     private void LogSomething(object? message, LogLevel level, bool logIt = false)
     {
-        message ??= $"message was null";
-
         if (logIt || WitchcraftSettings.Debug())
         {
+            message ??= $"message was null";
             var now = DateTime.UtcNow;
             Logger!.Log(level, $"[{now}] {message}");
             SavedLogs += $"[{level,-7}, {now}] {message}\n";
@@ -38,11 +37,9 @@ public class LogManager
             allLogsCount++;
 
             if (LogMessageCount >= 10 || level is not LogLevel.Message or LogLevel.Info or LogLevel.Debug)
-            {
                 SaveLogs();
-                GeneralUtils.SaveText("AllLogs.log", allLogs!);
-            }
-            else if (allLogsCount >= 10 || level is not LogLevel.Message or LogLevel.Info or LogLevel.Debug)
+
+            if (allLogsCount >= 10 || level is not LogLevel.Message or LogLevel.Info or LogLevel.Debug)
                 GeneralUtils.SaveText("AllLogs.log", allLogs!);
         }
     }
@@ -63,7 +60,7 @@ public class LogManager
 
     public void SaveLogs() => GeneralUtils.SaveText($"{Name}.log", SavedLogs);
 
-    public static LogManager? Log<T>() => ModManager.Instance(typeof(T))?.Logs;
+    public static LogManager? Log<T>() => ModSingleton<T>.Instance?.Logs;
 
     public static void SaveAllTheLogs()
     {

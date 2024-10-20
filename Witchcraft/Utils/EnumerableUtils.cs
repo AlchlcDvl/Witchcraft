@@ -16,12 +16,7 @@ public static class EnumerableUtils
             throw new ArgumentNullException(nameof(source));
 
         var num = 0;
-        var enumerator = source.GetEnumerator();
-
-        while (enumerator.MoveNext())
-            action(enumerator.Current, num++);
-
-        enumerator.Dispose();
+        source.ForEach(x => action(x, num++));
     }
 
     public static TValue? GetOrCompute<TKey, TValue>(this IDictionary<TKey, TValue> dict, TKey key, Func<TValue> supplier) where TKey : notnull
@@ -243,4 +238,15 @@ public static class EnumerableUtils
     }
 
     public static bool AllAnyOrEmpty<T>(this IEnumerable<T> source, Func<T, bool> predicate, bool all = false) => !source.Any() || (all ? source.All(predicate) : source.Any(predicate));
+
+    public static T? Find<T>(this IEnumerable<T> source, Func<T, bool> predicate)
+    {
+        foreach (var item in source)
+        {
+            if (predicate(item))
+                return item;
+        }
+
+        return default!;
+    }
 }
