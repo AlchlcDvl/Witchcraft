@@ -32,7 +32,7 @@ public static class DumpStringTables
             if (StringUtils.IsNullEmptyOrWhiteSpace(xml))
                 continue;
 
-            Witchcraft.Instance!.Message($"Loading: {manager.Name} {text} xml");
+            manager.AssetLogs.Message($"Loading: {text} xml");
             var xmlDocument = new XmlDocument();
             xmlDocument.LoadXml(xml);
 
@@ -41,7 +41,7 @@ public static class DumpStringTables
                 if (!__instance.stringTable_.ContainsKey(textEntry.key))
                     __instance.stringTable_.Add(textEntry.key, textEntry.value);
                 else
-                    Witchcraft.Instance!.Warning($"{manager.Name}: Duplicate String Table Key \"{textEntry.key}\"!");
+                    manager.AssetLogs.Warning($"{manager.Name}: Duplicate String Table Key \"{textEntry.key}\"!");
 
                 if (StringUtils.IsNullEmptyOrWhiteSpace(textEntry.style))
                     continue;
@@ -49,7 +49,7 @@ public static class DumpStringTables
                 if (!__instance.styleTable_.ContainsKey(textEntry.key))
                     __instance.styleTable_.Add(textEntry.key, textEntry.style);
                 else
-                    Witchcraft.Instance!.Warning($"{manager.Name}: Duplicate Style Table Key \"{textEntry.key}\"!");
+                    manager.AssetLogs.Warning($"{manager.Name}: Duplicate Style Table Key \"{textEntry.key}\"!");
             }
         }
     }

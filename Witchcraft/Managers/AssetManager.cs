@@ -15,7 +15,7 @@ public class AssetManager
     private Assembly Core { get; }
     private Action PostLoad { get; }
     private string[] BundleNames { get; }
-    private LogManager AssetLogs { get; }
+    public LogManager AssetLogs { get; }
 
     public static List<AssetManager> Managers { get; set; } = [];
 
@@ -57,7 +57,7 @@ public class AssetManager
     {
         var tType = typeof(T);
 
-        if (UnityLoadedObjects.TryGetValue(name, out var objList) && objList.TryFinding(x => x.GetType().IsRelated(tType), out var result))
+        if (UnityLoadedObjects.TryGetValue(name, out var objList) && objList.TryFinding(x => x is T, out var result))
             return result as T;
 
         if (ObjectToBundle.TryGetValue(name.ToLower(CultureInfo.CurrentCulture), out var bundle))
@@ -79,7 +79,7 @@ public class AssetManager
     {
         var tType = typeof(T);
 
-        if (SystemLoadedObjects.TryGetValue(name, out var objList) && objList.TryFinding(x => x.GetType().IsRelated(tType), out var result))
+        if (SystemLoadedObjects.TryGetValue(name, out var objList) && objList.TryFinding(x => x is T, out var result))
             return (T)result!;
 
         if (name != "Placeholder" && fetchPlaceholder)

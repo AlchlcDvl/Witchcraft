@@ -50,8 +50,6 @@ public static class GeneralUtils
             Application.OpenURL($"file://{path}");
     }
 
-    public static bool IsRelated(this Type a, Type b) => a == b || a.IsAssignableFrom(b) || b.IsAssignableFrom(a);
-
     public static int GetNumeral(this BitArray array, int startIndex, int bitLength)
     {
         var newArray = new BitArray(bitLength);
