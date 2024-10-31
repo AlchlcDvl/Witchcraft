@@ -9,7 +9,7 @@ public class AssetManager
     public Dictionary<string, string> ObjectToBundle { get; set; } = [];
     public Dictionary<string, List<UObject>> UnityLoadedObjects { get; set; } = [];
     public Dictionary<string, List<object>> SystemLoadedObjects { get; set; } = [];
-    public string? Xml { get; set; }
+    public Dictionary<string, string> Xmls { get; set; } = [];
 
     public string Name { get; }
     private Assembly Core { get; }
@@ -44,7 +44,7 @@ public class AssetManager
             else if (resourceName.EndsWithAny([".gif"]))
                 AddSystemAsset(name1, LoadGifFromResources(resourceName));
             else if (resourceName.EndsWithAny([".xml"]))
-                Xml = LoadTextFromResources(resourceName);
+                Xmls[name1] = LoadTextFromResources(resourceName);
             else if (!Bundles.ContainsKey(name1) && BundleNames.Contains(name1))
                 Bundles[name1] = LoadBundleFromResources(resourceName);
         }

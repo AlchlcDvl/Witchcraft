@@ -19,12 +19,22 @@ public static class DumpStringTables
     {
         foreach (var manager in AssetManager.Managers)
         {
-            if (StringUtils.IsNullEmptyOrWhiteSpace(manager.Xml))
+            var text = __instance.GetStringTableFilename(__instance.m_selectedUILanguageId).Split('/')[^1].Replace(".xml", "");
+
+            if (!manager.Xmls.TryGetValue(text, out var xml))
+            {
+                if (!manager.Xmls.TryGetValue("StringTable", out xml))
+                    continue;
+                else
+                    text = "StringTable";
+            }
+
+            if (StringUtils.IsNullEmptyOrWhiteSpace(xml))
                 continue;
 
-            Witchcraft.Instance!.Message($"Loading: {manager.Name} xml");
+            Witchcraft.Instance!.Message($"Loading: {manager.Name} {text} xml");
             var xmlDocument = new XmlDocument();
-            xmlDocument.LoadXml(manager.Xml);
+            xmlDocument.LoadXml(xml);
 
             foreach (var textEntry in XMLStringTable.Load(xmlDocument).entries)
             {
