@@ -346,7 +346,7 @@ public class AssetManager
     public static byte[] GetBytes(string path, StreamType type, Assembly core = null!) => GetStream(path, type, core).ReadFully();
 
     // courtesy of pat, love ya mate
-    public static TMP_SpriteAsset BuildGlyphs(IEnumerable<Sprite> sprites, string spriteAssetName, Dictionary<string, (string, int)> index, bool shouldLower = true)
+    public static TMP_SpriteAsset BuildGlyphs(IEnumerable<Sprite> sprites, string spriteAssetName, Dictionary<string, string> index)
     {
         var textures = sprites.Select(x => x.texture).ToArray();
         var asset = ScriptableObject.CreateInstance<TMP_SpriteAsset>();
@@ -381,7 +381,7 @@ public class AssetManager
 
             var character = new TMP_SpriteCharacter(0, asset, glyph)
             {
-                name = index[shouldLower ? glyph.sprite.name.ToLower() : glyph.sprite.name].Item1,
+                name = index[glyph.sprite.name],
                 glyphIndex = (uint)i,
             };
 
