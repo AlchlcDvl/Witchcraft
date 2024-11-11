@@ -1,6 +1,7 @@
 using System.Xml;
 using Home.Services;
 using Home.Shared;
+using MonoMod.Utils;
 using SalemModLoader;
 
 namespace Witchcraft;
@@ -58,5 +59,5 @@ public static class DumpStringTables
 [HarmonyPatch(typeof(Launch), "SetAssetBundleValues")]
 public static class LoadAllAssets
 {
-    public static void Postfix() => AssetManager.Managers.ForEach(x => x.BeginLoading());
+    public static void Postfix() => AssetManager.LoadAllAssets();
 }

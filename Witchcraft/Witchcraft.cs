@@ -5,7 +5,7 @@ namespace Witchcraft;
 [WitchcraftMod(typeof(Witchcraft), hasFolder: true)]
 public class Witchcraft
 {
-    public static WitchcraftMod? Instance { get; private set;}
+    public static WitchcraftMod? Instance { get; private set; }
 
     public void Start()
     {
@@ -14,7 +14,7 @@ public class Witchcraft
     }
 
     [UponAssetsLoaded]
-    public static void UponLoad() => LogsButton.Icon = ModSingleton<Witchcraft>.Instance!.Assets?.GetSprite("Thumbnail");
+    public static void UponLoad() => LogsButton.Icon = Instance!.Assets?.GetSprite("Thumbnail");
 
     public static readonly SalemMenuButton LogsButton = new()
     {

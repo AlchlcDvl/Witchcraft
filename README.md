@@ -6,7 +6,7 @@ A modding API for Town Of Salem 2!
 ____
 
 ### How To Use
-Lib support is not finished yet, this is just going to be one of the first APIs available for modding the game itself. This section will be updated when the mod loader adds library support.
+Follow the documentation in the [wiki](https://github.com/AlchlcDvl/Witchcraft/wiki)!
 
 ____
 
@@ -26,7 +26,7 @@ To quote the "Salem Mod Loader" [Discord](https://discord.gg/AdpRqzstfj).
 [Town of Salem Rules](https://www.blankmediagames.com/rules/)
 > No Cheating – Gaining an unfair advantage over players through means other than normal gameplay. This includes but isn’t limited to using multiple accounts in the same game, sharing information outside the game, using a foreign language to communicate in a way that can’t be understood by the players in the current locale, and posting screenshots to prove something happened in game.
 
-To quote a developer in the official Town of Salem 2 [Discord](https://discord.gg/townofsalem2). [Message Link](https://discord.com/channels/1110363758792036352/1111801081060655154/1112876123852906617)
+To quote a developer in the official Town of Salem 2 [Discord](https://discord.gg/townofsalem). [Message Link](https://discord.com/channels/1110363758792036352/1111801081060655154/1112876123852906617)
 > We plan to have official mod support, but having a good base is important. A new player won't have a mod preinstalled.
 
 ___

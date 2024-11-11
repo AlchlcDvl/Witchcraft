@@ -4,7 +4,7 @@ namespace Witchcraft.Gifs;
 
 public static class GifLoader
 {
-    public static GifData SetGifData(byte[] gifBytes)
+    public static GifData GetGifData(byte[] gifBytes)
     {
         if (gifBytes == null || gifBytes.Length <= 0)
         {
@@ -15,22 +15,22 @@ public static class GifLoader
         var byteIndex = 0;
         var gifData = new GifData();
 
-        if (!SetGifHeader(gifBytes, ref byteIndex, ref gifData))
+        if (!GetGifHeader(gifBytes, ref byteIndex, ref gifData))
         {
-            Witchcraft.Instance!.Error("Problem setting header data.");
+            Witchcraft.Instance!.Error("Problem getting header data.");
             return null!;
         }
 
-        if (!SetGifBlock(gifBytes, ref byteIndex, ref gifData))
+        if (!GetGifBlock(gifBytes, ref byteIndex, ref gifData))
         {
-            Witchcraft.Instance!.Error("Problem setting gif block data.");
+            Witchcraft.Instance!.Error("Problem getting gif block data.");
             return null!;
         }
 
         return gifData;
     }
 
-    public static bool SetGifHeader(byte[] gifBytes, ref int byteIndex, ref GifData gifData)
+    public static bool GetGifHeader(byte[] gifBytes, ref int byteIndex, ref GifData gifData)
     {
         if (gifBytes[0] != 'G' || gifBytes[1] != 'I' || gifBytes[2] != 'F')
         {
@@ -88,7 +88,7 @@ public static class GifLoader
         return true;
     }
 
-    public static bool SetGifBlock(byte[] gifBytes, ref int byteIndex, ref GifData gifData)
+    public static bool GetGifBlock(byte[] gifBytes, ref int byteIndex, ref GifData gifData)
     {
         try
         {
@@ -99,25 +99,25 @@ public static class GifLoader
                 var nowIndex = byteIndex;
 
                 if (gifBytes[nowIndex] == 0x2c)
-                    SetImageBlock(gifBytes, ref byteIndex, ref gifData);
+                    GetImageBlock(gifBytes, ref byteIndex, ref gifData);
                 else if (gifBytes[nowIndex] == 0x21)
                 {
                     switch (gifBytes[nowIndex + 1])
                     {
                         case 0xf9:
-                            SetGraphicControlExtension(gifBytes, ref byteIndex, ref gifData);
+                            GetGraphicControlExtension(gifBytes, ref byteIndex, ref gifData);
                             break;
 
                         case 0xfe:
-                            SetCommentExtension(gifBytes, ref byteIndex, ref gifData);
+                            GetCommentExtension(gifBytes, ref byteIndex, ref gifData);
                             break;
 
                         case 0x01:
-                            SetPlainTextExtension(gifBytes, ref byteIndex, ref gifData);
+                            GetPlainTextExtension(gifBytes, ref byteIndex, ref gifData);
                             break;
 
                         case 0xff:
-                            SetApplicationExtension(gifBytes, ref byteIndex, ref gifData);
+                            GetApplicationExtension(gifBytes, ref byteIndex, ref gifData);
                             break;
 
                         default:
@@ -142,14 +142,14 @@ public static class GifLoader
         }
         catch (Exception ex)
         {
-            Witchcraft.Instance!.Error($"{ex.Message}");
+            Witchcraft.Instance!.Error(ex);
             return false;
         }
 
         return true;
     }
 
-    public static void SetImageBlock(byte[] gifBytes, ref int byteIndex, ref GifData gifData)
+    public static void GetImageBlock(byte[] gifBytes, ref int byteIndex, ref GifData gifData)
     {
         var ib = new ImageBlock() { ImageSeparator = gifBytes[byteIndex] };
         byteIndex++;
@@ -218,7 +218,7 @@ public static class GifLoader
         gifData.ImageBlockList.Add(ib);
     }
 
-    public static void SetGraphicControlExtension(byte[] gifBytes, ref int byteIndex, ref GifData gifData)
+    public static void GetGraphicControlExtension(byte[] gifBytes, ref int byteIndex, ref GifData gifData)
     {
         var gcEx = new GraphicControlExtension() { ExtensionIntroducer = gifBytes[byteIndex] };
         byteIndex++;
@@ -254,7 +254,7 @@ public static class GifLoader
         gifData.GraphicCtrlExList.Add(gcEx);
     }
 
-    public static void SetCommentExtension(byte[] gifBytes, ref int byteIndex, ref GifData gifData)
+    public static void GetCommentExtension(byte[] gifBytes, ref int byteIndex, ref GifData gifData)
     {
         var commentEx = new CommentExtension() { ExtensionIntroducer = gifBytes[byteIndex] };
         byteIndex++;
@@ -294,7 +294,7 @@ public static class GifLoader
         gifData.CommentExList.Add(commentEx);
     }
 
-    public static void SetPlainTextExtension(byte[] gifBytes, ref int byteIndex, ref GifData gifData)
+    public static void GetPlainTextExtension(byte[] gifBytes, ref int byteIndex, ref GifData gifData)
     {
         var plainTxtEx = new PlainTextExtension() { ExtensionIntroducer = gifBytes[byteIndex] };
         byteIndex++;
@@ -339,7 +339,7 @@ public static class GifLoader
         gifData.PlainTextExList.Add(plainTxtEx);
     }
 
-    public static void SetApplicationExtension(byte[] gifBytes, ref int byteIndex, ref GifData gifData)
+    public static void GetApplicationExtension(byte[] gifBytes, ref int byteIndex, ref GifData gifData)
     {
         gifData.AppEx.ExtensionIntroducer = gifBytes[byteIndex];
         byteIndex++;
@@ -428,7 +428,7 @@ public static class GifLoader
         return decodedData;
     }
 
-    public static List<byte[]> GetColorTableAndSetBgColor(GifData gifData, ImageBlock imgBlock, int transparentIndex, out Color32 bgColor)
+    public static List<byte[]> GetColorTableAndGetBgColor(GifData gifData, ImageBlock imgBlock, int transparentIndex, out Color32 bgColor)
     {
         var colorTable = imgBlock.LocalColorTableFlag ? imgBlock.LocalColorTable : (gifData.GlobalColorTableFlag ? gifData.GlobalColorTable : null);
 

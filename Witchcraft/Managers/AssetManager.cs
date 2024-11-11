@@ -14,18 +14,22 @@ public class AssetManager
     public string Name { get; }
     private Assembly Core { get; }
     private Action PostLoad { get; }
+    private Action PostAllLoad { get; }
     private string[] BundleNames { get; }
     public LogManager AssetLogs { get; }
 
     public static List<AssetManager> Managers { get; set; } = [];
+    public static event Action? PostAllLoaded = null;
 
-    public AssetManager(string name, Action postLoad, Assembly core, string[] bundles, LogManager logs)
+    public AssetManager(string name, Action postLoad, Action postAllLoad, Assembly core, string[] bundles, LogManager logs)
     {
         Name = name;
         Core = core;
         PostLoad = postLoad;
+        PostAllLoad = postAllLoad;
         BundleNames = bundles;
         AssetLogs = logs;
+        PostAllLoaded += PostAllLoad;
         Managers.Add(this);
     }
 
@@ -35,15 +39,15 @@ public class AssetManager
         {
             var name1 = resourceName.SanitisePath();
 
-            if (resourceName.EndsWithAny([".png", ".jpg"]))
+            if (resourceName.EndsWithAny(".png", ".jpg"))
                 AddUnityAsset(name1, LoadSpriteFromResources(resourceName));
-            else if (resourceName.EndsWithAny([".mp3", ".wav", ".ogg", ".raw"]))
+            else if (resourceName.EndsWithAny(".mp3", ".wav", ".ogg", ".raw"))
                 AddUnityAsset(name1, LoadAudioFromResources(resourceName));
-            else if (resourceName.EndsWithAny([".txt", ".log"]))
+            else if (resourceName.EndsWithAny(".txt", ".log"))
                 AddSystemAsset(name1, LoadTextFromResources(resourceName));
-            else if (resourceName.EndsWithAny([".gif"]))
+            else if (resourceName.EndsWithAny(".gif"))
                 AddSystemAsset(name1, LoadGifFromResources(resourceName));
-            else if (resourceName.EndsWithAny([".xml"]))
+            else if (resourceName.EndsWithAny(".xml"))
                 Xmls[name1] = LoadTextFromResources(resourceName);
             else if (!Bundles.ContainsKey(name1) && BundleNames.Contains(name1))
                 Bundles[name1] = LoadBundleFromResources(resourceName);
@@ -51,6 +55,12 @@ public class AssetManager
 
         PostLoad();
         AssetLogs.Message("Assets loaded!");
+    }
+
+    public static void LoadAllAssets()
+    {
+        Managers.ForEach(x => x.BeginLoading());
+        PostAllLoaded?.Invoke();
     }
 
     public T? UnityGet<T>(string name, bool fetchPlaceholder = false) where T : UObject
@@ -133,7 +143,10 @@ public class AssetManager
         ObjectToBundle.Remove(name);
 
         if (!Bundles.Keys.Any(ObjectToBundle.Values.Contains))
+        {
             Bundles.Remove(assetBundle.name);
+            assetBundle.Unload(false);
+        }
 
         return asset;
     }
@@ -294,7 +307,7 @@ public class AssetManager
     public static Gif LoadGif(byte[] data)
     {
         var result = new List<Sprite>();
-        var gifData = GifLoader.SetGifData(data);
+        var gifData = GifLoader.GetGifData(data);
 
         if (gifData == null || gifData.ImageBlockList == null || gifData.ImageBlockList.Count < 1)
             return null!;
@@ -310,7 +323,7 @@ public class AssetManager
             var graphicCtrlEx = GifLoader.GetGraphicCtrlExt(gifData, imgIndex);
             var transparentIndex = GifLoader.GetTransparentIndex(graphicCtrlEx);
 
-            var colorTable = GifLoader.GetColorTableAndSetBgColor(gifData, img, transparentIndex, out var bgColor);
+            var colorTable = GifLoader.GetColorTableAndGetBgColor(gifData, img, transparentIndex, out var bgColor);
             rawTextures.Add(GifLoader.GetTextureData(decodedData, bgColor, colorTable, transparentIndex, img));
             imgIndex++;
         }
@@ -324,11 +337,64 @@ public class AssetManager
             };
             gifFrame.SetPixels32(rawTextures[i], 0);
             gifFrame.Apply();
-
             result.Add(Sprite.Create(gifFrame, new(0, 0, width, height), new(0.5f, 0.5f), 100));
         }
 
-        return new(result);
+        return new(result, gifData);
+    }
+
+    public static byte[] GetBytes(string path, StreamType type, Assembly core = null!) => GetStream(path, type, core).ReadFully();
+
+    // courtesy of pat, love ya mate
+    public static TMP_SpriteAsset BuildGlyphs(IEnumerable<Sprite> sprites, string spriteAssetName, Dictionary<string, (string, int)> index, bool shouldLower = true)
+    {
+        var textures = sprites.Select(x => x.texture).ToArray();
+        var asset = ScriptableObject.CreateInstance<TMP_SpriteAsset>();
+        var image = new Texture2D(2048, 2048) { name = spriteAssetName };
+        var rects = image.PackTextures(textures, 2);
+
+        for (var i = 0; i < rects.Length; i++)
+        {
+            var rect = rects[i];
+            var tex = textures[i];
+
+            var glyph = new TMP_SpriteGlyph()
+            {
+                glyphRect = new()
+                {
+                    x = (int)(rect.x * image.width),
+                    y = (int)(rect.y * image.height),
+                    width = (int)(rect.width * image.width),
+                    height = (int)(rect.height * image.height),
+                },
+                metrics = new()
+                {
+                    width = tex.width,
+                    height = tex.height,
+                    horizontalBearingY = tex.width * 0.75f,
+                    horizontalBearingX = 0,
+                    horizontalAdvance = tex.width
+                },
+                index = (uint)i,
+                sprite = sprites.ElementAtOrDefault(i),
+            };
+
+            var character = new TMP_SpriteCharacter(0, asset, glyph)
+            {
+                name = index[shouldLower ? glyph.sprite.name.ToLower() : glyph.sprite.name].Item1,
+                glyphIndex = (uint)i,
+            };
+
+            asset.spriteGlyphTable.Add(glyph);
+            asset.spriteCharacterTable.Add(character);
+        }
+
+        asset.name = spriteAssetName;
+        asset.material = new(Shader.Find("TextMeshPro/Sprite"));
+        AccessTools.Property(asset.GetType(), "version").SetValue(asset, "1.1.0");
+        asset.material.mainTexture = asset.spriteSheet = image;
+        asset.UpdateLookupTables();
+        return asset.DontDestroyOrUnload();
     }
 }
 
@@ -337,3 +403,9 @@ public enum StreamType
     Disk,
     Resources
 }
+
+[AttributeUsage(AttributeTargets.Method)]
+public class UponAssetsLoadedAttribute : Attribute;
+
+[AttributeUsage(AttributeTargets.Method)]
+public class UponAllAssetsLoadedAttribute : Attribute;

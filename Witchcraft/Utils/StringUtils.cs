@@ -9,12 +9,7 @@ public static class StringUtils
 
     public static string GetRandomisedString(int maxLength) => ASCII.AsEnumerable().GetRandomRange(URandom.RandomRangeInt(1, maxLength + 1)).ConstructString();
 
-    public static string ConstructString(this IEnumerable<char> chars)
-    {
-        var result = string.Empty;
-        chars.ForEach(x => result += x);
-        return result;
-    }
+    public static string ConstructString(this IEnumerable<char> chars) => new(chars.ToArray());
 
     public static string WrapText(string text, int width = 90, bool overflow = true)
     {
@@ -93,7 +88,7 @@ public static class StringUtils
 
     public static string Repeat(this string str, int times)
     {
-        if (times < 0)
+        if (times <= 0)
             return string.Empty;
 
         var append = str;
@@ -138,5 +133,5 @@ public static class StringUtils
         return path;
     }
 
-    public static bool EndsWithAny(this string name, string[] endings) => Array.Exists(endings, name.EndsWith);
+    public static bool EndsWithAny(this string name, params string[] endings) => Array.Exists(endings, name.EndsWith);
 }

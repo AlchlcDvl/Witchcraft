@@ -15,6 +15,8 @@ global using Witchcraft.Managers;
 global using Witchcraft.Modules;
 global using Witchcraft.Utils;
 
+global using TMPro;
+
 global using static SML.Mod;
 
 global using SRandom = System.Random;

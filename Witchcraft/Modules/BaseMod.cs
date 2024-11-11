@@ -21,7 +21,9 @@ public class WitchcraftMod : Attribute
         Logs = new(Name);
 
         var method1 = modType.GetMethod(x => x.GetCustomAttribute<UponAssetsLoadedAttribute>() != null || x.Name.Contains("UponAssetsLoaded")) ?? typeof(WitchcraftMod).GetMethod("BlankVoid");
-        Assets = new(Name, () => method1.Invoke(null, null), modType.Assembly, bundles ?? [], Logs);
+        var method2 = modType.GetMethod(x => x.GetCustomAttribute<UponAllAssetsLoadedAttribute>() != null || x.Name.Contains("UponAllAssetsLoaded")) ??
+            typeof(WitchcraftMod).GetMethod("BlankVoid");
+        Assets = new(Name, () => method1.Invoke(null, null), () => method2.Invoke(null, null), modType.Assembly, bundles ?? [], Logs);
 
         if (!Directory.Exists(ModPath) && HasFolder)
             Directory.CreateDirectory(ModPath);
@@ -49,12 +51,9 @@ public class WitchcraftMod : Attribute
     public static implicit operator bool(WitchcraftMod exists) => exists != null;
 }
 
-[AttributeUsage(AttributeTargets.Method)]
-public class UponAssetsLoadedAttribute : Attribute;
-
 public static class ModSingleton<T>
 {
-    public static WitchcraftMod ? Instance
+    public static WitchcraftMod? Instance
     {
         get
         {

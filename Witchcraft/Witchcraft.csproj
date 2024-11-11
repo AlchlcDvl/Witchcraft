@@ -28,13 +28,10 @@
         <EmbeddedResource Include="Resources\*" />
         <PackageReference Include="HarmonyX" Version="2.10.1" />
         <PackageReference Include="UnityEngine.Modules" Version="2021.3.1" IncludeAssets="compile" />
-        <Reference Include="Lib\*.dll">
-            <HintPath>Lib\%(FileName)%(Extension)</HintPath>
-            <Private>false</Private>
-        </Reference>
+        <Reference Include="Libs\*.dll" />
     </ItemGroup>
 
     <Target Name="Copy" AfterTargets="Build" Condition="'$(TOS)' != ''">
-        <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(TOS)/SalemModLoader/Mods"></Copy>
+        <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(TOS)/SalemModLoader/Mods" />
     </Target>
 </Project>

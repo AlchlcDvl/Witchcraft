@@ -5,7 +5,11 @@ namespace Witchcraft.Utils;
 
 public static class Coroutines
 {
-    public static void PerformTimedAction(float duration, Action<float> action) => ApplicationController.ApplicationContext.StartCoroutine(CoPerformTimedAction(duration, action));
+    public static Coroutine Start(IEnumerator coroutine) => ApplicationController.ApplicationContext.StartCoroutine(coroutine);
+
+    public static void Stop(IEnumerator coroutine) => ApplicationController.ApplicationContext.StopCoroutine(coroutine);
+
+    public static void PerformTimedAction(float duration, Action<float> action) => Start(CoPerformTimedAction(duration, action));
 
     public static IEnumerator CoPerformTimedAction(float duration, Action<float> action)
     {

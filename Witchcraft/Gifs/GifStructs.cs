@@ -1,8 +1,9 @@
 namespace Witchcraft.Gifs;
 
-public class Gif(List<Sprite> frames)
+public class Gif(List<Sprite> frames, GifData data)
 {
     public List<Sprite> Frames { get; set; } = frames;
+    public GifData Data { get; set; } = data;
 }
 
 public class GifData
