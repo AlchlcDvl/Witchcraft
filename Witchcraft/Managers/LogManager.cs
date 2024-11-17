@@ -2,26 +2,23 @@ using BepInEx.Logging;
 
 namespace Witchcraft.Managers;
 
-public class LogManager
+public class LogManager : BaseManager
 {
-    public string Name { get; }
     private int LogMessageCount { get; set; }
     private string SavedLogs { get; set; }
     private ManualLogSource? Logger { get; }
 
-    private static string? allLogs = string.Empty;
-    private static int allLogsCount;
+    private static string? AllLogs = string.Empty;
+    private static int AllLogsCount;
 
     public static List<LogManager> Managers { get; set; } = [];
 
-    public LogManager(string? name = null)
+    public LogManager(string name, WitchcraftMod mod) : base(name, mod)
     {
-        Name = name ?? Assembly.GetCallingAssembly().GetName().Name;
         LogMessageCount = 0;
         SavedLogs = string.Empty;
         Logger = BepInEx.Logging.Logger.CreateLogSource(Name.Replace(" ", string.Empty));
         Managers.Add(this);
-        Message("Logger initliased");
     }
 
     private void LogSomething(object? message, LogLevel level, bool logIt = false)
@@ -32,15 +29,15 @@ public class LogManager
             var now = DateTime.UtcNow;
             Logger!.Log(level, $"[{now}] {message}");
             SavedLogs += $"[{level,-7}, {now}] {message}\n";
-            allLogs += $"[{Name}, {level,-7}, {now}] {message}\n";
+            AllLogs += $"[{Name}, {level,-7}, {now}] {message}\n";
             LogMessageCount++;
-            allLogsCount++;
+            AllLogsCount++;
 
             if (LogMessageCount >= 10 || level is not LogLevel.Message or LogLevel.Info or LogLevel.Debug)
                 SaveLogs();
 
-            if (allLogsCount >= 10 || level is not LogLevel.Message or LogLevel.Info or LogLevel.Debug)
-                GeneralUtils.SaveText("AllLogs.log", allLogs!);
+            if (AllLogsCount >= 10 || level is not LogLevel.Message or LogLevel.Info or LogLevel.Debug)
+                GeneralUtils.SaveText("AllLogs.log", AllLogs!);
         }
     }
 
@@ -56,7 +53,7 @@ public class LogManager
 
     public void Debug(object? message, bool logIt = false) => LogSomething(message, LogLevel.Debug, logIt);
 
-    public static void SaveAllLogs() => GeneralUtils.SaveText("AllLogs.log", allLogs!);
+    public static void SaveAllLogs() => GeneralUtils.SaveText("AllLogs.log", AllLogs!);
 
     public void SaveLogs() => GeneralUtils.SaveText($"{Name}.log", SavedLogs);
 

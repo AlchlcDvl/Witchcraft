@@ -1,9 +1,10 @@
 using System.Globalization;
+using Newtonsoft.Json;
 using Witchcraft.Gifs;
 
 namespace Witchcraft.Managers;
 
-public class AssetManager
+public class AssetManager : BaseManager
 {
     public Dictionary<string, AssetBundle> Bundles { get; set; } = [];
     public Dictionary<string, string> ObjectToBundle { get; set; } = [];
@@ -11,24 +12,20 @@ public class AssetManager
     public Dictionary<string, List<object>> SystemLoadedObjects { get; set; } = [];
     public Dictionary<string, string> Xmls { get; set; } = [];
 
-    public string Name { get; }
     private Assembly Core { get; }
     private Action PostLoad { get; }
     private Action PostAllLoad { get; }
     private string[] BundleNames { get; }
-    public LogManager AssetLogs { get; }
 
     public static List<AssetManager> Managers { get; set; } = [];
-    public static event Action? PostAllLoaded = null;
+    public static event Action? PostAllLoaded;
 
-    public AssetManager(string name, Action postLoad, Action postAllLoad, Assembly core, string[] bundles, LogManager logs)
+    public AssetManager(string name, WitchcraftMod mod, Action postLoad, Action postAllLoad, Assembly core, string[] bundles) : base(name, mod)
     {
-        Name = name;
         Core = core;
         PostLoad = postLoad;
         PostAllLoad = postAllLoad;
         BundleNames = bundles;
-        AssetLogs = logs;
         PostAllLoaded += PostAllLoad;
         Managers.Add(this);
     }
@@ -49,12 +46,13 @@ public class AssetManager
                 AddSystemAsset(name1, LoadGifFromResources(resourceName));
             else if (resourceName.EndsWithAny(".xml"))
                 Xmls[name1] = LoadTextFromResources(resourceName);
+            else if (resourceName.ToLower().EndsWithAny("modinfo.json"))
+                Mod.ModInfo = DeserializeJson<ModInfo>(LoadTextFromResources(resourceName));
             else if (!Bundles.ContainsKey(name1) && BundleNames.Contains(name1))
                 Bundles[name1] = LoadBundleFromResources(resourceName);
         }
 
         PostLoad();
-        AssetLogs.Message("Assets loaded!");
     }
 
     public static void LoadAllAssets()
@@ -75,12 +73,12 @@ public class AssetManager
 
         if (name != "Placeholder" && fetchPlaceholder)
         {
-            AssetLogs.Debug($"Could not find {name} for type {tType.Name}, attempting to find placeholder");
+            Mod.Debug($"Could not find {name} for type {tType.Name}, attempting to find placeholder");
             return UnityGet<T>("Placeholder", true);
         }
 
         if (fetchPlaceholder)
-            AssetLogs.Debug($"No placholder for type {tType.Name}");
+            Mod.Debug($"No placholder for type {tType.Name}");
 
         return null;
     }
@@ -94,12 +92,12 @@ public class AssetManager
 
         if (name != "Placeholder" && fetchPlaceholder)
         {
-            AssetLogs.Debug($"Could not find {name} for type {tType.Name}, attempting to find placeholder");
+            Mod.Debug($"Could not find {name} for type {tType.Name}, attempting to find placeholder");
             return SystemGet<T>("Placeholder", true);
         }
 
         if (fetchPlaceholder)
-            AssetLogs.Debug($"No placholder for type {tType.Name}");
+            Mod.Debug($"No placholder for type {tType.Name}");
 
         return default;
     }
@@ -328,14 +326,14 @@ public class AssetManager
             imgIndex++;
         }
 
-        for (var i = 0; i < rawTextures.Count; i++)
+        foreach (var tex in rawTextures)
         {
             var gifFrame = new Texture2D(width, height, TextureFormat.ARGB32, false, false)
             {
                 filterMode = FilterMode.Point,
                 wrapMode = TextureWrapMode.Clamp,
             };
-            gifFrame.SetPixels32(rawTextures[i], 0);
+            gifFrame.SetPixels32(tex, 0);
             gifFrame.Apply();
             result.Add(Sprite.Create(gifFrame, new(0, 0, width, height), new(0.5f, 0.5f), 100));
         }
@@ -344,6 +342,12 @@ public class AssetManager
     }
 
     public static byte[] GetBytes(string path, StreamType type, Assembly core = null!) => GetStream(path, type, core).ReadFully();
+
+    public static T DeserializeJson<T>(string data) => JsonConvert.DeserializeObject<T>(data)!;
+
+    public static T[] DeserializeArrayJson<T>(string data) => JsonConvert.DeserializeObject<T[]>(data)!;
+
+    public static AssetManager? Assets<T>() => ModSingleton<T>.Instance?.Assets;
 
     // courtesy of pat, love ya mate
     public static TMP_SpriteAsset BuildGlyphs(IEnumerable<Sprite> sprites, string spriteAssetName, Dictionary<string, string> index)

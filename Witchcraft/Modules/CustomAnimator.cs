@@ -35,12 +35,7 @@ public class CustomAnimator : MonoBehaviour
             return;
 
         Time = 0f;
-
-        if (FrameIndex < Anim!.Count - 1)
-            FrameIndex++;
-        else
-            FrameIndex = 0;
-
+        FrameIndex = NumberUtils.CycleInt(Anim!.Count - 1, 0, FrameIndex, true);
         Renderer!.sprite = Anim[FrameIndex];
     }
 }

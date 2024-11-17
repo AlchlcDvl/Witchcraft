@@ -1,7 +1,6 @@
 using System.Xml;
 using Home.Services;
 using Home.Shared;
-using MonoMod.Utils;
 using SalemModLoader;
 
 namespace Witchcraft;
@@ -33,24 +32,24 @@ public static class DumpStringTables
             if (StringUtils.IsNullEmptyOrWhiteSpace(xml))
                 continue;
 
-            manager.AssetLogs.Message($"Loading: {text} xml");
+            manager.Mod.Message($"Loading: {text} xml");
             var xmlDocument = new XmlDocument();
             xmlDocument.LoadXml(xml);
 
             foreach (var textEntry in XMLStringTable.Load(xmlDocument).entries)
             {
-                if (!__instance.stringTable_.ContainsKey(textEntry.key))
-                    __instance.stringTable_.Add(textEntry.key, textEntry.value);
+                if (__instance.stringTable_.ContainsKey(textEntry.key))
+                    manager.Mod.Warning($"{manager.Name}: Duplicate String Table Key \"{textEntry.key}\"!");
                 else
-                    manager.AssetLogs.Warning($"{manager.Name}: Duplicate String Table Key \"{textEntry.key}\"!");
+                    __instance.stringTable_.Add(textEntry.key, textEntry.value);
 
                 if (StringUtils.IsNullEmptyOrWhiteSpace(textEntry.style))
                     continue;
 
-                if (!__instance.styleTable_.ContainsKey(textEntry.key))
-                    __instance.styleTable_.Add(textEntry.key, textEntry.style);
+                if (__instance.styleTable_.ContainsKey(textEntry.key))
+                    manager.Mod.Warning($"{manager.Name}: Duplicate Style Table Key \"{textEntry.key}\"!");
                 else
-                    manager.AssetLogs.Warning($"{manager.Name}: Duplicate Style Table Key \"{textEntry.key}\"!");
+                    __instance.styleTable_.Add(textEntry.key, textEntry.style);
             }
         }
     }
