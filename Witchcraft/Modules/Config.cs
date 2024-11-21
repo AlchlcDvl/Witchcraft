@@ -6,7 +6,7 @@ public class ConfigBase;
 
 public class Config<T>(ConfigEntry<T> entry) : ConfigBase
 {
-    internal ConfigEntry<T> Entry { get; set; } = entry;
+    internal ConfigEntry<T> Entry { get; } = entry;
 
     public T Value
     {

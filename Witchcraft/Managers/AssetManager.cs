@@ -46,8 +46,6 @@ public class AssetManager : BaseManager
                 AddSystemAsset(name1, LoadGifFromResources(resourceName));
             else if (resourceName.EndsWithAny(".xml"))
                 Xmls[name1] = LoadTextFromResources(resourceName);
-            else if (resourceName.ToLower().EndsWithAny("modinfo.json"))
-                Mod.ModInfo = DeserializeJson<ModInfo>(LoadTextFromResources(resourceName));
             else if (!Bundles.ContainsKey(name1) && BundleNames.Contains(name1))
                 Bundles[name1] = LoadBundleFromResources(resourceName);
         }

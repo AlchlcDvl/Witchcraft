@@ -60,8 +60,7 @@ public static class LoadAllAssets
 {
     public static void Postfix(Launch __instance)
     {
-        ModManager.SMLInstance = __instance;
+        ConfigManager.LoadAllConfigs(__instance);
         AssetManager.LoadAllAssets();
-        ConfigManager.LoadAllConfigs();
     }
 }

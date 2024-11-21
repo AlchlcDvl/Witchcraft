@@ -1,7 +1,11 @@
+using SalemModLoader;
+
 namespace Witchcraft.Managers;
 
 public class ConfigManager : BaseManager
 {
+    private static Launch? SMLInstance { get; set; }
+
     public static List<ConfigManager> Managers { get; set; } = [];
 
     public List<ConfigBase> Configs { get; set; } = [];
@@ -16,19 +20,18 @@ public class ConfigManager : BaseManager
 
     public Config<T> Bind<T>(string key, string descKey, T defaultValue)
     {
-        var config = new Config<T>(ModManager.SMLInstance!.Config.Bind(Mod.ModInfo!.HarmonyId, key, defaultValue, descKey));
+        var config = new Config<T>(SMLInstance!.Config.Bind(Mod.ModInfo!.HarmonyId, key, defaultValue, descKey));
         Configs.Add(config);
         return config;
     }
 
-    public Config<T> Bind<T>(string key, T defaultValue)
+    public Config<T> Bind<T>(string key, T defaultValue) => Bind(key, key, defaultValue);
+
+    public static void LoadAllConfigs(Launch __instance)
     {
-        var config = new Config<T>(ModManager.SMLInstance!.Config.Bind(Mod.ModInfo!.HarmonyId, key, defaultValue));
-        Configs.Add(config);
-        return config;
+        SMLInstance = __instance;
+        Managers.ForEach(m => m.Load());
     }
-
-    public static void LoadAllConfigs() => Managers.ForEach(m => m.Load());
 }
 
 [AttributeUsage(AttributeTargets.Method)]

@@ -3,13 +3,13 @@ namespace Witchcraft.Modules;
 [AttributeUsage(AttributeTargets.Class)]
 public class WitchcraftMod : Attribute
 {
-    public AssetManager Assets { get; set; }
-    public LogManager Logs { get; set; }
-    public ConfigManager Configs { get; set; }
+    public AssetManager Assets { get; }
+    public LogManager Logs { get; }
+    public ConfigManager Configs { get; }
     public string ModPath { get; }
-    public Type ModType { get; set; }
-    public string Name { get; set; }
-    public ModInfo? ModInfo { get; set; }
+    public Type ModType { get; }
+    public string Name { get; }
+    public ModInfo ModInfo { get; }
 
     public WitchcraftMod(Type modType, string? name = null, string[] bundles = null!, bool hasFolder = false) : base()
     {
@@ -19,13 +19,16 @@ public class WitchcraftMod : Attribute
 
         Logs = new(Name, this);
 
-        var method1 = modType.GetMethod(x => x.GetCustomAttribute<UponAssetsLoadedAttribute>() != null || x.Name.Contains("UponAssetsLoaded")) ?? typeof(WitchcraftMod).GetMethod("BlankVoid");
-        var method2 = modType.GetMethod(x => x.GetCustomAttribute<UponAllAssetsLoadedAttribute>() != null || x.Name.Contains("UponAllAssetsLoaded")) ??
-            typeof(WitchcraftMod).GetMethod("BlankVoid");
+        var blank = typeof(WitchcraftMod).GetMethod("BlankVoid");
+
+        var method1 = modType.GetMethod(x => x.GetCustomAttribute<UponAssetsLoadedAttribute>() != null || x.Name.Contains("UponAssetsLoaded")) ?? blank;
+        var method2 = modType.GetMethod(x => x.GetCustomAttribute<UponAllAssetsLoadedAttribute>() != null || x.Name.Contains("UponAllAssetsLoaded")) ?? blank;
         Assets = new(Name, this, () => method1.Invoke(null, null), () => method2.Invoke(null, null), modType.Assembly, bundles ?? []);
 
-        var method3 = modType.GetMethod(x => x.GetCustomAttribute<LoadConfigsAttribute>() != null || x.Name.Contains("LoadConfigs")) ?? typeof(WitchcraftMod).GetMethod("BlankVoid");
+        var method3 = modType.GetMethod(x => x.GetCustomAttribute<LoadConfigsAttribute>() != null || x.Name.Contains("LoadConfigs")) ?? blank;
         Configs = new(Name, this, () => method3.Invoke(null, null));
+
+        ModInfo = AssetManager.DeserializeJson<ModInfo>(Assets.LoadTextFromResources(modType.Assembly.GetManifestResourceNames().First(x => x.ToLower().EndsWith("modinfo.json"))));
 
         if (!Directory.Exists(ModPath) && hasFolder)
             Directory.CreateDirectory(ModPath);
