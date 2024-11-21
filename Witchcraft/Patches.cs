@@ -58,5 +58,10 @@ public static class DumpStringTables
 [HarmonyPatch(typeof(Launch), "SetAssetBundleValues")]
 public static class LoadAllAssets
 {
-    public static void Postfix() => AssetManager.LoadAllAssets();
+    public static void Postfix(Launch __instance)
+    {
+        ModManager.SMLInstance = __instance;
+        AssetManager.LoadAllAssets();
+        ConfigManager.LoadAllConfigs();
+    }
 }

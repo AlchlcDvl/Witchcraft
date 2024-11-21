@@ -24,7 +24,8 @@ public class WitchcraftMod : Attribute
             typeof(WitchcraftMod).GetMethod("BlankVoid");
         Assets = new(Name, this, () => method1.Invoke(null, null), () => method2.Invoke(null, null), modType.Assembly, bundles ?? []);
 
-        Configs = new(Name, this);
+        var method3 = modType.GetMethod(x => x.GetCustomAttribute<LoadConfigsAttribute>() != null || x.Name.Contains("LoadConfigs")) ?? typeof(WitchcraftMod).GetMethod("BlankVoid");
+        Configs = new(Name, this, () => method3.Invoke(null, null));
 
         if (!Directory.Exists(ModPath) && hasFolder)
             Directory.CreateDirectory(ModPath);

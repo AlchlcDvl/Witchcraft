@@ -10,7 +10,6 @@ public class Witchcraft
     public void Start()
     {
         Instance = ModSingleton<Witchcraft>.Instance;
-        ModManager.FetchSmlSingleton();
         Instance!.Message("Magic is brewing!", true);
     }
 

@@ -1,19 +1,27 @@
-using BepInEx.Configuration;
-
 namespace Witchcraft.Managers;
 
 public class ConfigManager : BaseManager
 {
     public static List<ConfigManager> Managers { get; set; } = [];
 
-    public List<ConfigEntryBase> Configs { get; set; } = [];
+    private Action Load { get; }
+    public List<ConfigBase> Configs { get; set; } = [];
 
-    public ConfigManager(string name, WitchcraftMod mod) : base(name, mod) => Managers.Add(this);
+    public ConfigManager(string name, WitchcraftMod mod, Action load) : base(name, mod)
+    {
+        Load = load;
+        Managers.Add(this);
+    }
 
     public Config<T> Bind<T>(string key, string descKey, T defaultValue)
     {
-        var config = ModManager.SMLInstance!.Config.Bind(Mod.ModInfo!.HarmonyId, key, defaultValue, descKey);
+        var config = new Config<T>(ModManager.SMLInstance!.Config.Bind(Mod.ModInfo!.HarmonyId, key, defaultValue, descKey));
         Configs.Add(config);
-        return new(config);
+        return config;
     }
+
+    public static void LoadAllConfigs() => Managers.ForEach(m => m.Load());
 }
+
+[AttributeUsage(AttributeTargets.Method)]
+public class LoadConfigsAttribute : Attribute;

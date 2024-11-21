@@ -2,7 +2,9 @@ using BepInEx.Configuration;
 
 namespace Witchcraft.Modules;
 
-public class Config<T>(ConfigEntry<T> entry)
+public class ConfigBase;
+
+public class Config<T>(ConfigEntry<T> entry) : ConfigBase
 {
     internal ConfigEntry<T> Entry { get; set; } = entry;
 
