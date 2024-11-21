@@ -4,8 +4,9 @@ public class ConfigManager : BaseManager
 {
     public static List<ConfigManager> Managers { get; set; } = [];
 
-    private Action Load { get; }
     public List<ConfigBase> Configs { get; set; } = [];
+
+    private Action Load { get; }
 
     public ConfigManager(string name, WitchcraftMod mod, Action load) : base(name, mod)
     {
@@ -16,6 +17,13 @@ public class ConfigManager : BaseManager
     public Config<T> Bind<T>(string key, string descKey, T defaultValue)
     {
         var config = new Config<T>(ModManager.SMLInstance!.Config.Bind(Mod.ModInfo!.HarmonyId, key, defaultValue, descKey));
+        Configs.Add(config);
+        return config;
+    }
+
+    public Config<T> Bind<T>(string key, T defaultValue)
+    {
+        var config = new Config<T>(ModManager.SMLInstance!.Config.Bind(Mod.ModInfo!.HarmonyId, key, defaultValue));
         Configs.Add(config);
         return config;
     }
