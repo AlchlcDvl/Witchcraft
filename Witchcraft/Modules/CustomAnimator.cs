@@ -19,6 +19,14 @@ public class CustomAnimator : MonoBehaviour
             Renderer = gameObject.EnsureComponent<Image>();
             FrameIndex = 0;
             Renderer!.sprite = Anim[0];
+            SetDuration(duration);
+        }
+    }
+
+    public void SetDuration(float duration)
+    {
+        if (Anim != null && Anim.Count > 0)
+        {
             TotalDuration = duration;
             FrameDuration = duration / Anim.Count;
         }

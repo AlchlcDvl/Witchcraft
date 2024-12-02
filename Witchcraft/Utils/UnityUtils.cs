@@ -51,20 +51,22 @@ public static class UnityUtils
             var child = self.GetChild(i);
 
             if (selector(child))
-            {
                 return child;
-            }
 
             var finding = child.FindRecursive(selector);
 
             if (finding != null)
-            {
                 return finding;
-            }
         }
 
         return null!;
     }
+
+    public static T? AddComponent<T>(this Transform self, string exactName) where T : Component => self.FindRecursive(exactName).AddComponent<T>();
+
+    public static T? GetComponent<T>(this Transform self, string exactName) where T : Component => self.FindRecursive(exactName).GetComponent<T>();
+
+    public static T? EnsureComponent<T>(this Transform self, string exactName) where T : Component => self.FindRecursive(exactName).EnsureComponent<T>();
 
     public static GameObject CreateGameObject(string name, Transform? parent = null, Vector3? scale = null, Vector3? localPosition = null)
     {

@@ -80,4 +80,6 @@ public static class GeneralUtils
     }
 
     public static MethodInfo? GetMethod(this Type type, Func<MethodInfo, bool> predicate) => type.GetMethods().Find(predicate);
+
+    public static T[]? GetEnumValues<T>() where T : struct, Enum => Enum.GetValues(typeof(T)) as T[];
 }

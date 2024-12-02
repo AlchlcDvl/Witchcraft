@@ -133,5 +133,7 @@ public static class StringUtils
         return path;
     }
 
-    public static bool EndsWithAny(this string name, params string[] endings) => Array.Exists(endings, name.EndsWith);
+    public static bool EndsWithAny(this string name, params string[] endings) => endings.Any(name.EndsWith);
+
+    public static bool ContainsAny(this string path, params string[] parts) => parts.Any(path.Contains);
 }
