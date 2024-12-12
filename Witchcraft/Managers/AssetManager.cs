@@ -1,6 +1,5 @@
 using System.Globalization;
 using Newtonsoft.Json;
-using Witchcraft.Gifs;
 
 namespace Witchcraft.Managers;
 
@@ -292,51 +291,17 @@ public class AssetManager : BaseManager
         _ => core?.GetManifestResourceStream(path) ?? throw new FileNotFoundException(path)
     };
 
-    public static Gif LoadGifFromResources(string path, Assembly assembly) => LoadGif(assembly.GetManifestResourceStream(path).ReadFully());
-
-    public static Gif LoadGifFromResourcesStatic(string path) => LoadGifFromResources(path, Assembly.GetCallingAssembly());
+    public static Gif LoadGifFromResources(string path, Assembly assembly) => LoadGif(path.SanitisePath(), GetStream(path, StreamType.Resources, assembly));
 
     public Gif LoadGifFromResources(string path) => LoadGifFromResources(path, Core);
 
-    public static Gif LoadGifFromDisk(string path) => LoadGif(File.ReadAllBytes(path));
+    public static Gif LoadGifFromDisk(string path) => LoadGif(path.SanitisePath(), GetStream(path, StreamType.Disk));
 
-    public static Gif LoadGif(byte[] data)
+    public static Gif LoadGif(string name, Stream stream)
     {
-        var result = new List<Sprite>();
-        var gifData = GifLoader.GetGifData(data);
-
-        if (gifData == null || gifData.ImageBlockList == null || gifData.ImageBlockList.Count < 1)
-            return null!;
-
-        var width = gifData.ScreenWidth;
-        var height = gifData.ScreenHeight;
-        var imgIndex = 0;
-        var rawTextures = new List<Color32[]>();
-
-        foreach (var img in gifData.ImageBlockList)
-        {
-            var decodedData = GifLoader.GetDecodedData(img);
-            var graphicCtrlEx = GifLoader.GetGraphicCtrlExt(gifData, imgIndex);
-            var transparentIndex = GifLoader.GetTransparentIndex(graphicCtrlEx);
-
-            var colorTable = GifLoader.GetColorTableAndGetBgColor(gifData, img, transparentIndex, out var bgColor);
-            rawTextures.Add(GifLoader.GetTextureData(decodedData, bgColor, colorTable, transparentIndex, img));
-            imgIndex++;
-        }
-
-        foreach (var tex in rawTextures)
-        {
-            var gifFrame = new Texture2D(width, height, TextureFormat.ARGB32, false, false)
-            {
-                filterMode = FilterMode.Point,
-                wrapMode = TextureWrapMode.Clamp,
-            };
-            gifFrame.SetPixels32(tex, 0);
-            gifFrame.Apply();
-            result.Add(Sprite.Create(gifFrame, new(0, 0, width, height), new(0.5f, 0.5f), 100));
-        }
-
-        return new(result, gifData);
+        var gif = new Gif(name);
+        gif.Load(stream);
+        return gif;
     }
 
     public static byte[] GetBytes(string path, StreamType type, Assembly core = null!) => GetStream(path, type, core).ReadFully();

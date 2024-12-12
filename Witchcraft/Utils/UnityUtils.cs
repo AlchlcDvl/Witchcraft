@@ -62,6 +62,20 @@ public static class UnityUtils
         return null!;
     }
 
+    public static IEnumerable<T> GetAllComponents<T>(this Transform self) where T : Component
+    {
+        var result = new List<T>();
+        var comp = self.GetComponent<T>();
+
+        if (comp)
+            result.Add(comp);
+
+        for (var i = 0; i < self.childCount; i++)
+            result.AddRange(self.GetChild(i).GetAllComponents<T>());
+
+        return result;
+    }
+
     public static T? AddComponent<T>(this Transform self, string exactName) where T : Component => self.FindRecursive(exactName).AddComponent<T>();
 
     public static T? GetComponent<T>(this Transform self, string exactName) where T : Component => self.FindRecursive(exactName).GetComponent<T>();
@@ -96,4 +110,12 @@ public static class UnityUtils
     public static string ToHtmlStringRGBA(this Color32 color) => $"{color.r:X2}{color.g:X2}{color.b:X2}{color.a:X2}";
 
     public static string ToHtmlStringRGBA(this Color color) => ((Color32)color).ToHtmlStringRGBA();
+
+    public static Transform GetParent(this Transform self, string name)
+    {
+        if (self.parent.name == name)
+            return self.parent;
+
+        return self.parent.GetParent(name);
+    }
 }

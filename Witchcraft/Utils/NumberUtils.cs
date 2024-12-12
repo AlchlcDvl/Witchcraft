@@ -53,4 +53,36 @@ public static class NumberUtils
     public static int CycleInt(int max, int min, int currentVal, bool increment, int change = 1) => (int)CycleFloat(max, min, currentVal, increment, change);
 
     public static byte CycleByte(int max, int min, int currentVal, bool increment, int change = 1) => (byte)CycleInt(max, min, currentVal, increment, change);
+
+    public static bool[] ToBits(this byte @byte)
+    {
+        var result = new bool[8];
+
+        for (var i = 0; i < 8; i++)
+            result[i] = @byte.ToBit(i);
+
+        return result;
+    }
+
+    public static bool ToBit(this byte @byte, int index) => (@byte & (1 << index)) != 0;
+
+    public static byte ToByte(this bool[] bits)
+    {
+        byte result = 0;
+
+        for (var i = 0; i < bits.Length; i++)
+            result |= bits[i].ToByte(i);
+
+        return result;
+    }
+
+    public static byte ToByte(this bool bit, int index) => (byte)(bit ? (1 << index) : 0);
+
+    public static float ZigZag(float mul, float length)
+    {
+        var dx = mul * Time.time;
+        var f = Mathf.FloorToInt(dx);
+        var m = f % 2;
+        return length * (((dx - f) * ((2 * m) - 1)) + 1 - m);
+    }
 }
