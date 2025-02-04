@@ -68,12 +68,13 @@ public static class UnityUtils
         var comp = self.GetComponent<T>();
 
         if (comp)
-            result.Add(comp);
+            yield return comp;
 
         for (var i = 0; i < self.childCount; i++)
-            result.AddRange(self.GetChild(i).GetAllComponents<T>());
-
-        return result;
+        {
+            foreach (var comp2 in self.GetChild(i).GetAllComponents<T>())
+                yield return comp2;
+        }
     }
 
     public static T? AddComponent<T>(this Transform self, string exactName) where T : Component => self.FindRecursive(exactName).AddComponent<T>();
@@ -118,4 +119,6 @@ public static class UnityUtils
 
         return self.parent.GetParent(name);
     }
+
+    public static Color ToColor(this string html) => ColorUtility.TryParseHtmlString(html.StartsWith("#") ? html : $"#{html}", out var color) ? color : Color.white;
 }

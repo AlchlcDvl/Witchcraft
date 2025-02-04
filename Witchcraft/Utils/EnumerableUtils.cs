@@ -249,4 +249,6 @@ public static class EnumerableUtils
 
         return default!;
     }
+
+    public static IEnumerable<T> GetAll<T>(this IEnumerable<IEnumerable<T>> source) => source.SelectMany(x => x);
 }

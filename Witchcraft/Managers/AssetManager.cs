@@ -7,8 +7,7 @@ public class AssetManager : BaseManager
 {
     public Dictionary<string, AssetBundle> Bundles { get; set; } = [];
     public Dictionary<string, string> ObjectToBundle { get; set; } = [];
-    public Dictionary<string, List<UObject>> UnityLoadedObjects { get; set; } = [];
-    public Dictionary<string, List<object>> SystemLoadedObjects { get; set; } = [];
+    public Dictionary<string, List<UObject>> LoadedObjects { get; set; } = [];
     public Dictionary<string, string> Xmls { get; set; } = [];
 
     private Assembly Core { get; }
@@ -36,15 +35,17 @@ public class AssetManager : BaseManager
             var name1 = resourceName.SanitisePath();
 
             if (resourceName.EndsWithAny(".png", ".jpg"))
-                AddUnityAsset(name1, LoadSpriteFromResources(resourceName));
-            else if (resourceName.EndsWithAny(".mp3", ".wav", ".ogg", ".raw"))
-                AddUnityAsset(name1, LoadAudioFromResources(resourceName));
+                AddAsset(name1, LoadSpriteFromResources(resourceName));
+            else if (resourceName.EndsWithAny(".mp3", ".ogg", ".raw"))
+                AddAsset(name1, LoadAudioFromResources(resourceName));
+            else if (resourceName.EndsWithAny(".wav"))
+                AddAsset(name1, LoadWavAudioFromResources(resourceName));
             else if (resourceName.EndsWithAny(".txt", ".log"))
-                AddSystemAsset(name1, LoadTextFromResources(resourceName));
+                AddAsset(name1, LoadTextFromResources(resourceName));
             else if (resourceName.EndsWithAny(".gif"))
-                AddSystemAsset(name1, LoadGifFromResources(resourceName));
+                AddAsset(name1, LoadGifFromResources(resourceName));
             else if (resourceName.EndsWithAny(".xml"))
-                Xmls[name1] = LoadTextFromResources(resourceName);
+                Xmls[name1] = LoadTextFromResources(resourceName).text;
             else if (!Bundles.ContainsKey(name1) && BundleNames.Contains(name1))
                 Bundles[name1] = LoadBundleFromResources(resourceName);
         }
@@ -58,11 +59,11 @@ public class AssetManager : BaseManager
         PostAllLoaded?.Invoke();
     }
 
-    public T? UnityGet<T>(string name, bool fetchPlaceholder = false) where T : UObject
+    public T? Get<T>(string name, bool fetchPlaceholder = false) where T : UObject
     {
         var tType = typeof(T);
 
-        if (UnityLoadedObjects.TryGetValue(name, out var objList) && objList.TryFinding(x => x is T, out var result))
+        if (LoadedObjects.TryGetValue(name, out var objList) && objList.TryFinding(x => x is T, out var result))
             return result as T;
 
         if (ObjectToBundle.TryGetValue(name.ToLower(CultureInfo.CurrentCulture), out var bundle))
@@ -71,7 +72,7 @@ public class AssetManager : BaseManager
         if (name != "Placeholder" && fetchPlaceholder)
         {
             Mod.Debug($"Could not find {name} for type {tType.Name}, attempting to find placeholder");
-            return UnityGet<T>("Placeholder", true);
+            return Get<T>("Placeholder", true);
         }
 
         if (fetchPlaceholder)
@@ -80,61 +81,12 @@ public class AssetManager : BaseManager
         return null;
     }
 
-    public T? SystemGet<T>(string name, bool fetchPlaceholder = false)
-    {
-        var tType = typeof(T);
-
-        if (SystemLoadedObjects.TryGetValue(name, out var objList) && objList.TryFinding(x => x is T, out var result))
-            return (T)result!;
-
-        if (name != "Placeholder" && fetchPlaceholder)
-        {
-            Mod.Debug($"Could not find {name} for type {tType.Name}, attempting to find placeholder");
-            return SystemGet<T>("Placeholder", true);
-        }
-
-        if (fetchPlaceholder)
-            Mod.Debug($"No placholder for type {tType.Name}");
-
-        return default;
-    }
-
-    public List<T> UnityGetAll<T>() where T : UObject
-    {
-        var result = new List<T>();
-
-        foreach (var (_, objList) in UnityLoadedObjects)
-        {
-            foreach (var obj in objList)
-            {
-                if (obj is T t)
-                    result.Add(t);
-            }
-        }
-
-        return result;
-    }
-
-    public List<T> SystemGetAll<T>()
-    {
-        var result = new List<T>();
-
-        foreach (var (_, objList) in SystemLoadedObjects)
-        {
-            foreach (var obj in objList)
-            {
-                if (obj is T t)
-                    result.Add(t);
-            }
-        }
-
-        return result;
-    }
+    public IEnumerable<T> UnityGetAll<T>() where T : UObject => LoadedObjects.Values.GetAll().OfType<T>();
 
     public T? LoadAsset<T>(AssetBundle assetBundle, string name) where T : UObject
     {
         var asset = assetBundle.LoadAsset<T>(name)?.DontDestroyOrUnload();
-        AddUnityAsset(name, asset);
+        AddAsset(name, asset);
         ObjectToBundle.Remove(name);
 
         if (!Bundles.Keys.Any(ObjectToBundle.Values.Contains))
@@ -146,24 +98,13 @@ public class AssetManager : BaseManager
         return asset;
     }
 
-    public void AddUnityAsset(string name, UObject? obj)
+    public void AddAsset(string name, UObject? obj)
     {
         if (obj is null)
             return;
 
-        if (!UnityLoadedObjects.TryGetValue(name, out var value))
-            UnityLoadedObjects[name] = [ obj ];
-        else if (!value.Contains(obj))
-            value.Add(obj);
-    }
-
-    public void AddSystemAsset(string name, object? obj)
-    {
-        if (obj is null)
-            return;
-
-        if (!SystemLoadedObjects.TryGetValue(name, out var value))
-            SystemLoadedObjects[name] = [ obj ];
+        if (!LoadedObjects.TryGetValue(name, out var value))
+            LoadedObjects[name] = [ obj ];
         else if (!value.Contains(obj))
             value.Add(obj);
     }
@@ -249,11 +190,11 @@ public class AssetManager : BaseManager
         return bundle.DontDestroyOrUnload();
     }
 
-    public string LoadTextFromResources(string path) => LoadTextFromResources(path, Core);
+    public TextAsset LoadTextFromResources(string path) => LoadTextFromResources(path, Core);
 
-    public static string LoadTextFromResourcesStatic(string path) => LoadTextFromResources(path, Assembly.GetCallingAssembly());
+    public static TextAsset LoadTextFromResourcesStatic(string path) => LoadTextFromResources(path, Assembly.GetCallingAssembly());
 
-    public static string LoadTextFromResources(string path, Assembly core) => new StreamReader(core.GetManifestResourceStream(path)).ReadToEnd() ?? "Missing text";
+    public static TextAsset LoadTextFromResources(string path, Assembly core) => new(new StreamReader(core.GetManifestResourceStream(path)).ReadToEnd() ?? "Missing text");
 
     /// <remarks>https://stackoverflow.com/questions/51315918/how-to-encodetopng-compressed-textures-in-unity courtesy of pat from SalemModLoader.</remarks>
     public static Texture2D Decompress(Texture2D source)
@@ -273,17 +214,17 @@ public class AssetManager : BaseManager
 
     public static string ConvertToBaseName(string name) => name.Split('/')[^1].Split('.')[0];
 
-    public string? GetString(string path, bool fetchPlaceholder = false) => SystemGet<string>(path, fetchPlaceholder);
+    public string? GetString(string path, bool fetchPlaceholder = false) => Get<TextAsset>(path, fetchPlaceholder)?.text;
 
-    public Sprite? GetSprite(string path, bool fetchPlaceholder = false) => UnityGet<Sprite>(path, fetchPlaceholder);
+    public Sprite? GetSprite(string path, bool fetchPlaceholder = false) => Get<Sprite>(path, fetchPlaceholder);
 
-    public AudioClip? GetAudio(string path, bool fetchPlaceholder = false) => UnityGet<AudioClip>(path, fetchPlaceholder);
+    public AudioClip? GetAudio(string path, bool fetchPlaceholder = false) => Get<AudioClip>(path, fetchPlaceholder);
 
-    public Gif? GetGif(string path, bool fetchPlaceholder = false) => SystemGet<Gif>(path, fetchPlaceholder);
+    public Gif? GetGif(string path, bool fetchPlaceholder = false) => Get<Gif>(path, fetchPlaceholder);
 
-    public Material? GetMaterial(string path, bool fetchPlaceholder = false) => UnityGet<Material>(path, fetchPlaceholder);
+    public Material? GetMaterial(string path, bool fetchPlaceholder = false) => Get<Material>(path, fetchPlaceholder);
 
-    public GameObject? GetGameObject(string path, bool fetchPlaceholder = false) => UnityGet<GameObject>(path, fetchPlaceholder);
+    public GameObject? GetGameObject(string path, bool fetchPlaceholder = false) => Get<GameObject>(path, fetchPlaceholder);
 
     public static Stream GetStream(string path, StreamType type, Assembly core = null!) => type switch
     {
@@ -362,6 +303,91 @@ public class AssetManager : BaseManager
         asset.material.mainTexture = asset.spriteSheet = image;
         asset.UpdateLookupTables();
         return asset.DontDestroyOrUnload();
+    }
+
+    public static AudioClip LoadWavAudioFromResources(string path, Assembly core) => LoadWavAudio(path.SanitisePath(), core.GetManifestResourceStream(path).ReadFully());
+
+    public static AudioClip LoadWavAudioFromResourcesStatic(string path) => LoadWavAudioFromResources(path, Assembly.GetCallingAssembly());
+
+    public AudioClip LoadWavAudioFromResources(string path) => LoadWavAudioFromResources(path, Core);
+
+    public static AudioClip LoadWavAudio(string name, byte[] fileBytes)
+    {
+        var chunk = BitConverter.ToInt32(fileBytes, 16) + 24;
+        var channels = BitConverter.ToUInt16(fileBytes, 22);
+        var sampleRate = BitConverter.ToInt32(fileBytes, 24);
+        var bitDepth = BitConverter.ToUInt16(fileBytes, 34);
+        var data = bitDepth switch
+        {
+            8 => Convert8BitByteArrayToAudioClipData(fileBytes, chunk),
+            16 => Convert16BitByteArrayToAudioClipData(fileBytes, chunk),
+            24 => Convert24BitByteArrayToAudioClipData(fileBytes, chunk),
+            32 => Convert32BitByteArrayToAudioClipData(fileBytes, chunk),
+            _ => throw new Exception(bitDepth + " bit depth is not supported."),
+        };
+
+        var audioClip = AudioClip.Create(name, data.Length, channels, sampleRate, false);
+        audioClip.SetData(data, 0);
+        audioClip.hideFlags |= HideFlags.DontSaveInEditor;
+        return audioClip.DontDestroyOrUnload();
+    }
+
+    private static float[] Convert8BitByteArrayToAudioClipData(byte[] source, int headerOffset)
+    {
+        var wavSize = BitConverter.ToInt32(source, headerOffset);
+        headerOffset += sizeof(int);
+        var data = new float[wavSize];
+
+        for (var i = 0; i < wavSize; i++)
+            data[i] = (float)source[i] / sbyte.MaxValue;
+
+        return data;
+    }
+
+    private static float[] Convert16BitByteArrayToAudioClipData(byte[] source, int headerOffset)
+    {
+        var wavSize = BitConverter.ToInt32(source, headerOffset);
+        headerOffset += sizeof(int);
+        var x = sizeof(short);
+        var convertedSize = wavSize / x;
+        var data = new float[convertedSize];
+
+        for (var i = 0; i < convertedSize; i++)
+            data[i] = (float)BitConverter.ToInt16(source, (i * x) + headerOffset) / short.MaxValue;
+
+        return data;
+    }
+
+    private static float[] Convert24BitByteArrayToAudioClipData(byte[] source, int headerOffset)
+    {
+        var wavSize = BitConverter.ToInt32(source, headerOffset);
+        var intSize = sizeof(int);
+        headerOffset += intSize;
+        var convertedSize = wavSize / 3;
+        var data = new float[convertedSize];
+        var block = new byte[intSize]; // Using a 4 byte block for copying 3 bytes, then copy bytes with 1 offset
+
+        for (var i = 0; i < convertedSize; i++)
+        {
+            Buffer.BlockCopy(source, (i * 3) + headerOffset, block, 1, 3);
+            data[i] = (float)BitConverter.ToInt32(block, 0) / int.MaxValue;
+        }
+
+        return data;
+    }
+
+    private static float[] Convert32BitByteArrayToAudioClipData (byte[] source, int headerOffset)
+    {
+        var wavSize = BitConverter.ToInt32(source, headerOffset);
+        headerOffset += sizeof(int);
+        var x = sizeof(float); // Block size = 4
+        var convertedSize = wavSize / x;
+        var data = new float[convertedSize];
+
+        for (var i = 0; i < convertedSize; i++)
+            data[i] = (float)BitConverter.ToInt32(source, (i * x) + headerOffset) / int.MaxValue;
+
+        return data;
     }
 }
 

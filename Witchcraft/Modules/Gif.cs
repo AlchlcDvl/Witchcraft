@@ -1,7 +1,7 @@
 namespace Witchcraft.Modules;
 
 // A slightly modified version of the gif loader found here: https://github.com/DigiWorm0/LevelImposter
-public class Gif(string name) : IDisposable
+public class Gif(string name) : UObject, IDisposable
 {
     private static readonly Color[] DEFAULT_COLOR_TABLE =
     [
@@ -567,7 +567,7 @@ public class GIFGraphicsControl
     public int TransparentColorIndex { get; set; }
 }
 
-public class GIFFrame
+public class GIFFrame : UObject
 {
     // Graphic Control Extension
     public GIFGraphicsControl? GraphicsControl { get; set; }
