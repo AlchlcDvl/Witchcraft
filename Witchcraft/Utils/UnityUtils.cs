@@ -38,7 +38,7 @@ public static class UnityUtils
 
     public static T? EnsureComponent<T>(this Component component) where T : Component => component?.gameObject?.EnsureComponent<T>();
 
-    public static T? EnsureComponent<T>(this GameObject gameObject) where T : Component => gameObject?.GetComponent<T>() ?? gameObject?.AddComponent<T>();
+    public static T? EnsureComponent<T>(this GameObject gameObject) where T : Component => gameObject?.TryGetComponent<T>(out var comp) == true ? comp : gameObject?.AddComponent<T>();
 
     public static Transform Get(this Component obj, int childIndex) => obj.transform.GetChild(childIndex);
 
@@ -55,7 +55,7 @@ public static class UnityUtils
 
             var finding = child.FindRecursive(selector);
 
-            if (finding != null)
+            if (finding)
                 return finding;
         }
 
@@ -64,10 +64,7 @@ public static class UnityUtils
 
     public static IEnumerable<T> GetAllComponents<T>(this Transform self) where T : Component
     {
-        var result = new List<T>();
-        var comp = self.GetComponent<T>();
-
-        if (comp)
+        if (self.TryGetComponent<T>(out var comp))
             yield return comp;
 
         for (var i = 0; i < self.childCount; i++)

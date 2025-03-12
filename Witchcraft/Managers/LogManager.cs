@@ -11,7 +11,7 @@ public class LogManager : BaseManager
     private static string? AllLogs = string.Empty;
     private static int AllLogsCount;
 
-    public static List<LogManager> Managers { get; set; } = [];
+    public static List<LogManager> Managers { get; } = [];
 
     public LogManager(string name, WitchcraftMod mod) : base(name, mod)
     {

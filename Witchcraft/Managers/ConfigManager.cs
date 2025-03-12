@@ -6,9 +6,9 @@ public class ConfigManager : BaseManager
 {
     private static Launch? SMLInstance { get; set; }
 
-    public static List<ConfigManager> Managers { get; set; } = [];
+    public static List<ConfigManager> Managers { get; } = [];
 
-    public List<ConfigBase> Configs { get; set; } = [];
+    public List<ConfigBase> Configs { get; } = [];
 
     private Action Load { get; }
 

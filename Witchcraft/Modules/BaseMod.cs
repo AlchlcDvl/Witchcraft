@@ -28,7 +28,7 @@ public class WitchcraftMod : Attribute
         var method3 = modType.GetMethod(x => x.GetCustomAttribute<LoadConfigsAttribute>() != null || x.Name.Contains("LoadConfigs")) ?? blank;
         Configs = new(Name, this, () => method3.Invoke(null, null));
 
-        ModInfo = AssetManager.DeserializeJson<ModInfo>(Assets.LoadTextFromResources(modType.Assembly.GetManifestResourceNames().First(x => x.ToLower().EndsWith("modinfo.json"))));
+        ModInfo = AssetManager.DeserializeJson<ModInfo>(Assets.GetString("modinfo")!);
 
         if (!Directory.Exists(ModPath) && hasFolder)
             Directory.CreateDirectory(ModPath);

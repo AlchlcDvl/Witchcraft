@@ -361,3 +361,4 @@ tools
 *.txt
 .vscode/
 packages.lock.json
+.qodo

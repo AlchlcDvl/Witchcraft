@@ -5,17 +5,18 @@ namespace Witchcraft.Managers;
 
 public class AssetManager : BaseManager
 {
-    public Dictionary<string, AssetBundle> Bundles { get; set; } = [];
-    public Dictionary<string, string> ObjectToBundle { get; set; } = [];
-    public Dictionary<string, List<UObject>> LoadedObjects { get; set; } = [];
-    public Dictionary<string, string> Xmls { get; set; } = [];
+    public Dictionary<string, AssetBundle> Bundles { get; } = [];
+    public Dictionary<string, string> ObjectToBundle { get; } = [];
+    public Dictionary<string, HashSet<UObject>> LoadedObjects { get; } = [];
+    public Dictionary<string, HashSet<string>> UnloadedObjects { get; } = [];
+    public Dictionary<string, string> Xmls { get; } = [];
 
     private Assembly Core { get; }
     private Action PostLoad { get; }
     private Action PostAllLoad { get; }
     private string[] BundleNames { get; }
 
-    public static List<AssetManager> Managers { get; set; } = [];
+    public static List<AssetManager> Managers { get; } = [];
     public static event Action? PostAllLoaded;
 
     public AssetManager(string name, WitchcraftMod mod, Action postLoad, Action postAllLoad, Assembly core, string[] bundles) : base(name, mod)
@@ -25,7 +26,17 @@ public class AssetManager : BaseManager
         PostAllLoad = postAllLoad;
         BundleNames = bundles;
         PostAllLoaded += PostAllLoad;
+        StoreAssetNames();
         Managers.Add(this);
+    }
+
+    public void StoreAssetNames()
+    {
+        foreach (var resourceName in Core.GetManifestResourceNames())
+        {
+            if (resourceName.EndsWithAny(".png", ".jpg", ".mp3", ".ogg", ".raw", ".wav", ".txt", ".log", ".json", ".gif"))
+                AddPath(resourceName.SanitisePath(), resourceName);
+        }
     }
 
     public void BeginLoading()
@@ -34,17 +45,7 @@ public class AssetManager : BaseManager
         {
             var name1 = resourceName.SanitisePath();
 
-            if (resourceName.EndsWithAny(".png", ".jpg"))
-                AddAsset(name1, LoadSpriteFromResources(resourceName));
-            else if (resourceName.EndsWithAny(".mp3", ".ogg", ".raw"))
-                AddAsset(name1, LoadAudioFromResources(resourceName));
-            else if (resourceName.EndsWithAny(".wav"))
-                AddAsset(name1, LoadWavAudioFromResources(resourceName));
-            else if (resourceName.EndsWithAny(".txt", ".log"))
-                AddAsset(name1, LoadTextFromResources(resourceName));
-            else if (resourceName.EndsWithAny(".gif"))
-                AddAsset(name1, LoadGifFromResources(resourceName));
-            else if (resourceName.EndsWithAny(".xml"))
+            if (resourceName.EndsWithAny(".xml"))
                 Xmls[name1] = LoadTextFromResources(resourceName).text;
             else if (!Bundles.ContainsKey(name1) && BundleNames.Contains(name1))
                 Bundles[name1] = LoadBundleFromResources(resourceName);
@@ -61,24 +62,49 @@ public class AssetManager : BaseManager
 
     public T? Get<T>(string name, bool fetchPlaceholder = false) where T : UObject
     {
-        var tType = typeof(T);
-
         if (LoadedObjects.TryGetValue(name, out var objList) && objList.TryFinding(x => x is T, out var result))
             return result as T;
 
         if (ObjectToBundle.TryGetValue(name.ToLower(CultureInfo.CurrentCulture), out var bundle))
             return LoadAsset<T>(Bundles[bundle], name);
 
-        if (name != "Placeholder" && fetchPlaceholder)
+        if (!UnloadedObjects.TryGetValue(name, out var strings))
+            return null;
+
+        var tType = typeof(T);
+
+        if (tType == typeof(Sprite) && strings.TryFinding(x => x.EndsWithAny(".png", ".jpg"), out var path))
+            result = AddAsset(name, LoadSpriteFromResources(path!));
+        else if (tType == typeof(AudioClip) && strings.TryFinding(x => x.EndsWithAny(".mp3", ".ogg", ".raw"), out path))
+            result = AddAsset(name, LoadAudioFromResources(path!));
+        else if (tType == typeof(AudioClip) && strings.TryFinding(x => x.EndsWithAny(".wav"), out path))
+            result = AddAsset(name, LoadWavAudioFromResources(path!));
+        else if (tType == typeof(Texture2D) && strings.TryFinding(x => x.EndsWithAny(".png", ".jpg"), out path))
+            result = AddAsset(name, LoadTextureFromResources(path!));
+        else if (tType == typeof(TextAsset) && strings.TryFinding(x => x.EndsWithAny(".txt", ".log", ".json"), out path))
+            result = AddAsset(name, LoadTextFromResources(path!));
+        else if (tType == typeof(Gif) && strings.TryFinding(x => x.EndsWithAny(".gif"), out path))
+            result = AddAsset(name, LoadGifFromResources(path!));
+        else
         {
-            Mod.Debug($"Could not find {name} for type {tType.Name}, attempting to find placeholder");
-            return Get<T>("Placeholder", true);
+            if (name != "Placeholder" && fetchPlaceholder)
+            {
+                Mod.Debug($"Could not find {name} for type {tType.Name}, attempting to find placeholder");
+                return Get<T>("Placeholder", true);
+            }
+
+            if (fetchPlaceholder)
+                Mod.Debug($"No placeholder for type {tType.Name}");
+
+            return null;
         }
 
-        if (fetchPlaceholder)
-            Mod.Debug($"No placholder for type {tType.Name}");
+        strings.Remove(path!);
 
-        return null;
+        if (strings.Count == 0)
+            UnloadedObjects.Remove(name);
+
+        return result as T;
     }
 
     public IEnumerable<T> UnityGetAll<T>() where T : UObject => LoadedObjects.Values.GetAll().OfType<T>();
@@ -98,15 +124,28 @@ public class AssetManager : BaseManager
         return asset;
     }
 
-    public void AddAsset(string name, UObject? obj)
+    public T AddAsset<T>(string name, T? obj) where T : UObject
     {
         if (obj is null)
-            return;
+            return null!;
 
         if (!LoadedObjects.TryGetValue(name, out var value))
             LoadedObjects[name] = [ obj ];
-        else if (!value.Contains(obj))
+        else
             value.Add(obj);
+
+        return obj;
+    }
+
+    public void AddPath(string name, string path)
+    {
+        if (path is null)
+            return;
+
+        if (!UnloadedObjects.TryGetValue(name, out var value))
+            UnloadedObjects[name] = [ path ];
+        else
+            value.Add(path);
     }
 
     public static Texture2D LoadTextureFromDisk(string path) => LoadTexture(File.OpenRead(path), path.SanitisePath());
@@ -117,7 +156,11 @@ public class AssetManager : BaseManager
 
     public Texture2D LoadTextureFromResources(string path) => LoadTextureFromResources(path, Core);
 
-    public static Texture2D EmptyTexture() => new(2, 2, TextureFormat.ARGB32, true);
+    public static Texture2D EmptyTexture() => new(2, 2, TextureFormat.ARGB32, true)
+    {
+        filterMode = FilterMode.Bilinear,
+        wrapMode = TextureWrapMode.Clamp
+    };
 
     public static Texture2D LoadTexture(Stream stream, string name)
     {
@@ -268,21 +311,8 @@ public class AssetManager : BaseManager
 
             var glyph = new TMP_SpriteGlyph()
             {
-                glyphRect = new()
-                {
-                    x = (int)(rect.x * image.width),
-                    y = (int)(rect.y * image.height),
-                    width = (int)(rect.width * image.width),
-                    height = (int)(rect.height * image.height),
-                },
-                metrics = new()
-                {
-                    width = tex.width,
-                    height = tex.height,
-                    horizontalBearingY = tex.width * 0.75f,
-                    horizontalBearingX = 0,
-                    horizontalAdvance = tex.width
-                },
+                glyphRect = new((int)(rect.x * image.width), (int)(rect.y * image.height), (int)(rect.width * image.width), (int)(rect.height * image.height)),
+                metrics = new(tex.width, tex.height, tex.width * 0.75f, 0, tex.width),
                 index = (uint)i,
                 sprite = sprites.ElementAtOrDefault(i),
             };
@@ -302,6 +332,7 @@ public class AssetManager : BaseManager
         AccessTools.Property(asset.GetType(), "version").SetValue(asset, "1.1.0");
         asset.material.mainTexture = asset.spriteSheet = image;
         asset.UpdateLookupTables();
+        asset.hashCode = TMP_TextUtilities.GetSimpleHashCode(asset.name);
         return asset.DontDestroyOrUnload();
     }
 

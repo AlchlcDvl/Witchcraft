@@ -129,6 +129,7 @@ public static class StringUtils
         path = path.Replace(".xml", string.Empty);
         path = path.Replace(".ogg", string.Empty);
         path = path.Replace(".wav", string.Empty);
+        path = path.Replace(".json", string.Empty);
         path = path.Split('.')[^1];
         return path;
     }
