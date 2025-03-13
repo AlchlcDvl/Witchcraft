@@ -311,25 +311,36 @@ public class AssetManager : BaseManager
 
             var glyph = new TMP_SpriteGlyph()
             {
-                glyphRect = new((int)(rect.x * image.width), (int)(rect.y * image.height), (int)(rect.width * image.width), (int)(rect.height * image.height)),
-                metrics = new(tex.width, tex.height, tex.width * 0.75f, 0, tex.width),
+                glyphRect = new()
+                {
+                    x = (int)(rect.x * image.width),
+                    y = (int)(rect.y * image.height),
+                    width = (int)(rect.width * image.width),
+                    height = (int)(rect.height * image.height),
+                },
+                metrics = new()
+                {
+                    width = tex.width,
+                    height = tex.height,
+                    horizontalBearingY = tex.width * 0.75f,
+                    horizontalBearingX = 0,
+                    horizontalAdvance = tex.width
+                },
                 index = (uint)i,
                 sprite = sprites.ElementAtOrDefault(i),
             };
 
-            var character = new TMP_SpriteCharacter(0, asset, glyph)
+            asset.spriteGlyphTable.Add(glyph);
+            asset.spriteCharacterTable.Add(new(0, asset, glyph)
             {
                 name = index[glyph.sprite.name],
                 glyphIndex = (uint)i,
-            };
-
-            asset.spriteGlyphTable.Add(glyph);
-            asset.spriteCharacterTable.Add(character);
+            });
         }
 
         asset.name = spriteAssetName;
         asset.material = new(Shader.Find("TextMeshPro/Sprite"));
-        AccessTools.Property(asset.GetType(), "version").SetValue(asset, "1.1.0");
+        asset.version = "1.1.0";
         asset.material.mainTexture = asset.spriteSheet = image;
         asset.UpdateLookupTables();
         asset.hashCode = TMP_TextUtilities.GetSimpleHashCode(asset.name);
