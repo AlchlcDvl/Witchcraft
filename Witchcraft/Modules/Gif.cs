@@ -66,7 +66,7 @@ public class Gif(string name) : UObject, IDisposable
     public Sprite GetFrameSprite(int frameIndex)
     {
         if (!IsLoaded)
-            throw new Exception("GIF file is not loaded");
+            throw new("GIF file is not loaded");
 
         if (frameIndex < 0 || frameIndex >= Frames.Count)
             throw new IndexOutOfRangeException("Frame index out of range");
@@ -82,19 +82,19 @@ public class Gif(string name) : UObject, IDisposable
         return frame.RenderedSprite!;
     }
 
-    private void ReadHeader(BinaryReader reader)
+    private static void ReadHeader(BinaryReader reader)
     {
         // Header
         var isGIF = new string(reader.ReadChars(3)) == "GIF";
 
         if (!isGIF)
-            throw new Exception("File is not a GIF");
+            throw new("File is not a GIF");
 
         // Version
         var version = new string(reader.ReadChars(3));
 
         if (version is not ("89a" or "87a"))
-            throw new Exception("File is not a GIF89a or GIF87a");
+            throw new("File is not a GIF89a or GIF87a");
     }
 
     private void ReadDescriptor(BinaryReader reader)
@@ -161,9 +161,7 @@ public class Gif(string name) : UObject, IDisposable
                 return false;
             }
             default:
-            {
-                throw new Exception("Invalid block type " + blockType);
-            }
+                throw new("Invalid block type " + blockType);
         }
     }
 
@@ -179,7 +177,7 @@ public class Gif(string name) : UObject, IDisposable
                 var blockSize = reader.ReadByte();
 
                 if (blockSize != 4)
-                    throw new Exception("Invalid block size " + blockSize);
+                    throw new("Invalid block size " + blockSize);
 
                 var packedField = reader.ReadByte();
                 var disposalMethod = (FrameDisposalMethod)((packedField & 0b00011100) >> 2);
@@ -191,7 +189,7 @@ public class Gif(string name) : UObject, IDisposable
                 var blockTerminator = reader.ReadByte();
 
                 if (blockTerminator != 0)
-                    throw new Exception("Invalid block terminator " + blockTerminator);
+                    throw new("Invalid block terminator " + blockTerminator);
 
                 // GIFGraphicsControl
                 _lastGraphicsControl = new()
@@ -220,9 +218,7 @@ public class Gif(string name) : UObject, IDisposable
                 break;
             }
             default:
-            {
-                throw new Exception("Invalid extension label " + extensionLabel);
-            }
+                throw new("Invalid extension label " + extensionLabel);
         }
     }
 
@@ -317,7 +313,7 @@ public class Gif(string name) : UObject, IDisposable
         _lastGraphicsControl = null;
     }
 
-    private List<ushort> DecodeLZW(byte[] byteBuffer, byte minCodeSize, int expectedSize)
+    private static List<ushort> DecodeLZW(byte[] byteBuffer, byte minCodeSize, int expectedSize)
     {
         var clearCode = 1 << minCodeSize; // Code used to clear the code table
         var endOfInformationCode = clearCode + 1; // Code used to signal the end of the image data
@@ -434,10 +430,10 @@ public class Gif(string name) : UObject, IDisposable
     public void RenderFrame(int frameIndex)
     {
         if (!IsLoaded)
-            throw new Exception("GIF is not loaded");
+            throw new("GIF is not loaded");
 
         if (frameIndex < 0 || frameIndex >= Frames.Count)
-            throw new Exception($"Frame index {frameIndex} is out of range");
+            throw new($"Frame index {frameIndex} is out of range");
 
         // Create pixel buffer
         if (_pixelBuffer == null)
@@ -458,7 +454,7 @@ public class Gif(string name) : UObject, IDisposable
                 continue;
 
             if (frame.IndexStream == null)
-                throw new Exception($"Frame {i} index stream is null");
+                throw new($"Frame {i} index stream is null");
 
             var graphicsControl = frame.GraphicsControl;
 

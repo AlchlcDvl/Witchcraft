@@ -5,10 +5,10 @@ namespace Witchcraft.Managers;
 
 public class AssetManager : BaseManager
 {
-    public Dictionary<string, AssetBundle> Bundles { get; } = [];
-    public Dictionary<string, string> ObjectToBundle { get; } = [];
-    public Dictionary<string, HashSet<UObject>> LoadedObjects { get; } = [];
-    public Dictionary<string, HashSet<string>> UnloadedObjects { get; } = [];
+    private Dictionary<string, AssetBundle> Bundles { get; } = [];
+    private Dictionary<string, string> ObjectToBundle { get; } = [];
+    private Dictionary<string, HashSet<UObject>> LoadedObjects { get; } = [];
+    private Dictionary<string, HashSet<string>> UnloadedObjects { get; } = [];
     public Dictionary<string, string> Xmls { get; } = [];
 
     private Assembly Core { get; }
@@ -30,7 +30,7 @@ public class AssetManager : BaseManager
         Managers.Add(this);
     }
 
-    public void StoreAssetNames()
+    private void StoreAssetNames()
     {
         foreach (var resourceName in Core.GetManifestResourceNames())
         {
@@ -39,7 +39,7 @@ public class AssetManager : BaseManager
         }
     }
 
-    public void BeginLoading()
+    private void BeginLoading()
     {
         foreach (var resourceName in Core.GetManifestResourceNames())
         {
@@ -48,7 +48,7 @@ public class AssetManager : BaseManager
             if (resourceName.EndsWithAny(".xml"))
                 Xmls[name1] = LoadTextFromResources(resourceName).text;
             else if (!Bundles.ContainsKey(name1) && BundleNames.Contains(name1))
-                Bundles[name1] = LoadBundleFromResources(resourceName);
+                RegisterBundle(LoadBundleFromResources(resourceName));
         }
 
         PostLoad();
@@ -58,6 +58,12 @@ public class AssetManager : BaseManager
     {
         Managers.ForEach(x => x.BeginLoading());
         PostAllLoaded?.Invoke();
+    }
+
+    public void RegisterBundle(AssetBundle bundle)
+    {
+        Bundles[bundle.name] = bundle;
+        bundle.GetAllAssetNames().ForEach(x => ObjectToBundle[ConvertToBaseName(x)] = bundle.name);
     }
 
     public T? Get<T>(string name, bool fetchPlaceholder = false) where T : UObject
@@ -107,7 +113,7 @@ public class AssetManager : BaseManager
         return result as T;
     }
 
-    public IEnumerable<T> UnityGetAll<T>() where T : UObject => LoadedObjects.Values.GetAll().OfType<T>();
+    public IEnumerable<T> GetAll<T>() where T : UObject => LoadedObjects.Values.GetAll().OfType<T>();
 
     public T? LoadAsset<T>(AssetBundle assetBundle, string name) where T : UObject
     {
@@ -137,7 +143,7 @@ public class AssetManager : BaseManager
         return obj;
     }
 
-    public void AddPath(string name, string path)
+    public void AddPath(string name, string? path)
     {
         if (path is null)
             return;
@@ -208,12 +214,7 @@ public class AssetManager : BaseManager
         return audioClip.DontDestroyOrUnload();
     }
 
-    public AssetBundle LoadBundleFromResources(string path)
-    {
-        var bundle = LoadBundle(path, StreamType.Resources, Core);
-        bundle.GetAllAssetNames().ForEach(x => ObjectToBundle[ConvertToBaseName(x)] = bundle.name);
-        return bundle;
-    }
+    public AssetBundle LoadBundleFromResources(string path) => LoadBundle(path, StreamType.Resources, Core);
 
     public static AssetBundle LoadBundleFromResources(string path, Assembly core) => LoadBundle(path, StreamType.Resources, core);
 
@@ -328,6 +329,7 @@ public class AssetManager : BaseManager
                 },
                 index = (uint)i,
                 sprite = sprites.ElementAtOrDefault(i),
+                scale = 1f
             };
 
             asset.spriteGlyphTable.Add(glyph);
@@ -335,15 +337,17 @@ public class AssetManager : BaseManager
             {
                 name = index[glyph.sprite.name],
                 glyphIndex = (uint)i,
+                scale = 1f
             });
         }
 
         asset.name = spriteAssetName;
         asset.material = new(Shader.Find("TextMeshPro/Sprite"));
         asset.version = "1.1.0";
-        asset.material.mainTexture = asset.spriteSheet = image;
+        asset.spriteSheet = image;
         asset.UpdateLookupTables();
         asset.hashCode = TMP_TextUtilities.GetSimpleHashCode(asset.name);
+        asset.material.SetTexture(ShaderUtilities.ID_MainTex, asset.spriteSheet);
         return asset.DontDestroyOrUnload();
     }
 
@@ -359,13 +363,14 @@ public class AssetManager : BaseManager
         var channels = BitConverter.ToUInt16(fileBytes, 22);
         var sampleRate = BitConverter.ToInt32(fileBytes, 24);
         var bitDepth = BitConverter.ToUInt16(fileBytes, 34);
+        var wavSize = BitConverter.ToInt32(fileBytes, chunk);
         var data = bitDepth switch
         {
-            8 => Convert8BitByteArrayToAudioClipData(fileBytes, chunk),
-            16 => Convert16BitByteArrayToAudioClipData(fileBytes, chunk),
-            24 => Convert24BitByteArrayToAudioClipData(fileBytes, chunk),
-            32 => Convert32BitByteArrayToAudioClipData(fileBytes, chunk),
-            _ => throw new Exception(bitDepth + " bit depth is not supported."),
+            8 => Convert8BitByteArrayToAudioClipData(fileBytes, wavSize),
+            16 => Convert16BitByteArrayToAudioClipData(fileBytes, chunk, wavSize),
+            24 => Convert24BitByteArrayToAudioClipData(fileBytes, chunk, wavSize),
+            32 => Convert32BitByteArrayToAudioClipData(fileBytes, chunk, wavSize),
+            _ => throw new(bitDepth + " bit depth is not supported."),
         };
 
         var audioClip = AudioClip.Create(name, data.Length, channels, sampleRate, false);
@@ -374,10 +379,8 @@ public class AssetManager : BaseManager
         return audioClip.DontDestroyOrUnload();
     }
 
-    private static float[] Convert8BitByteArrayToAudioClipData(byte[] source, int headerOffset)
+    private static float[] Convert8BitByteArrayToAudioClipData(byte[] source, int wavSize)
     {
-        var wavSize = BitConverter.ToInt32(source, headerOffset);
-        headerOffset += sizeof(int);
         var data = new float[wavSize];
 
         for (var i = 0; i < wavSize; i++)
@@ -386,11 +389,10 @@ public class AssetManager : BaseManager
         return data;
     }
 
-    private static float[] Convert16BitByteArrayToAudioClipData(byte[] source, int headerOffset)
+    private static float[] Convert16BitByteArrayToAudioClipData(byte[] source, int headerOffset, int wavSize)
     {
-        var wavSize = BitConverter.ToInt32(source, headerOffset);
         headerOffset += sizeof(int);
-        var x = sizeof(short);
+        const int x = sizeof(short);
         var convertedSize = wavSize / x;
         var data = new float[convertedSize];
 
@@ -400,14 +402,13 @@ public class AssetManager : BaseManager
         return data;
     }
 
-    private static float[] Convert24BitByteArrayToAudioClipData(byte[] source, int headerOffset)
+    private static float[] Convert24BitByteArrayToAudioClipData(byte[] source, int headerOffset, int wavSize)
     {
-        var wavSize = BitConverter.ToInt32(source, headerOffset);
-        var intSize = sizeof(int);
+        const int intSize = sizeof(int);
         headerOffset += intSize;
         var convertedSize = wavSize / 3;
         var data = new float[convertedSize];
-        var block = new byte[intSize]; // Using a 4 byte block for copying 3 bytes, then copy bytes with 1 offset
+        var block = new byte[intSize]; // Using a 4-byte block for copying 3 bytes, then copy bytes with 1 offset
 
         for (var i = 0; i < convertedSize; i++)
         {
@@ -418,16 +419,14 @@ public class AssetManager : BaseManager
         return data;
     }
 
-    private static float[] Convert32BitByteArrayToAudioClipData (byte[] source, int headerOffset)
+    private static float[] Convert32BitByteArrayToAudioClipData(byte[] source, int headerOffset, int wavSize)
     {
-        var wavSize = BitConverter.ToInt32(source, headerOffset);
         headerOffset += sizeof(int);
-        var x = sizeof(float); // Block size = 4
-        var convertedSize = wavSize / x;
+        var convertedSize = wavSize / 4;
         var data = new float[convertedSize];
 
         for (var i = 0; i < convertedSize; i++)
-            data[i] = (float)BitConverter.ToInt32(source, (i * x) + headerOffset) / int.MaxValue;
+            data[i] = (float)BitConverter.ToInt32(source, (i * 4) + headerOffset) / int.MaxValue;
 
         return data;
     }

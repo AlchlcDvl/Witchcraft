@@ -8,28 +8,24 @@ public class CustomAnimator : MonoBehaviour
     public Image? Renderer { get; set; }
     public int FrameIndex { get; set; }
     public float FrameDuration { get; set; }
-    public float TotalDuration { get; set; }
     public float Time { get; set; }
 
-    public void SetAnim(List<Sprite> anim, float duration)
+    public void SetAnim(List<Sprite>? anim, float duration)
     {
-        if (anim != null && anim.Count > 0)
-        {
-            Anim = anim;
-            Renderer = gameObject.EnsureComponent<Image>();
-            FrameIndex = 0;
-            Renderer!.sprite = Anim[0];
-            SetDuration(duration);
-        }
+        if (anim is not { Count: > 0 })
+            return;
+
+        Anim = anim;
+        Renderer = gameObject.EnsureComponent<Image>();
+        FrameIndex = 0;
+        Renderer!.sprite = Anim[0];
+        SetDuration(duration);
     }
 
     public void SetDuration(float duration)
     {
-        if (Anim != null && Anim.Count > 0)
-        {
-            TotalDuration = duration;
+        if (Anim is { Count: > 0 })
             FrameDuration = duration / Anim.Count;
-        }
     }
 
     public void Update()

@@ -4,38 +4,25 @@ public static class NumberUtils
 {
     public static bool IsInRange(this float num, float min, float max, bool minInclusive = false, bool maxInclusive = false)
     {
-        if (minInclusive && maxInclusive)
-            return num >= min && num <= max;
-        else if (minInclusive)
-            return num >= min && num < max;
-        else if (maxInclusive)
-            return num > min && num <= max;
-        else
-            return num > min && num < max;
+        switch (minInclusive)
+        {
+            case true when maxInclusive:
+                return num >= min && num <= max;
+            case true:
+                return num >= min && num < max;
+        }
+
+        return num > min && (maxInclusive ? num <= max : num < max);
     }
 
-    public static bool IsInRange(this int num, float min, float max, bool minInclusive = false, bool maxInclusive = false)
+    public static bool IsInRange(this int num, float min, float max, bool minInclusive = false, bool maxInclusive = false) => ((float)num).IsInRange(min, max, minInclusive, maxInclusive);
+
+    public static bool Check(int probability) => probability switch
     {
-        if (minInclusive && maxInclusive)
-            return num >= min && num <= max;
-        else if (minInclusive)
-            return num >= min && num < max;
-        else if (maxInclusive)
-            return num > min && num <= max;
-        else
-            return num > min && num < max;
-    }
-
-    public static bool Check(int probability)
-    {
-        if (probability == 0)
-            return false;
-
-        if (probability == 100)
-            return true;
-
-        return URandom.RandomRangeInt(1, 100) <= probability;
-    }
+        0 => false,
+        100 => true,
+        _ => URandom.RandomRangeInt(1, 100) <= probability
+    };
 
     public static float CycleFloat(float max, float min, float currentVal, bool increment, float change = 1f)
     {

@@ -27,6 +27,8 @@ public class ConfigManager : BaseManager
 
     public Config<T> Bind<T>(string key, T defaultValue) => Bind(key, key, defaultValue);
 
+    public static ConfigManager? Config<T>() => ModSingleton<T>.Instance?.Configs;
+
     public static void LoadAllConfigs(Launch __instance)
     {
         SMLInstance = __instance;

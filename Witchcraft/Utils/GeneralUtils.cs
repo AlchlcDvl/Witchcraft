@@ -11,7 +11,7 @@ public static class GeneralUtils
 
         try
         {
-            File.WriteAllText(Path.Combine(path, fileName), (overrideText ? string.Empty : ReadText(fileName, path!)) + textToSave);
+            File.WriteAllText(Path.Combine(path, fileName), (overrideText ? string.Empty : ReadText(fileName, path)) + textToSave);
         }
         catch (Exception e)
         {
@@ -60,7 +60,7 @@ public static class GeneralUtils
         return newArray.ToNumeral();
     }
 
-    public static int ToNumeral(this BitArray array)
+    public static int ToNumeral(this BitArray? array)
     {
         if (array == null)
         {

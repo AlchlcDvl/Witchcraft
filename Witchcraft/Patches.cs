@@ -25,8 +25,8 @@ public static class DumpStringTables
             {
                 if (!manager.Xmls.TryGetValue("StringTable", out xml))
                     continue;
-                else
-                    text = "StringTable";
+
+                text = "StringTable";
             }
 
             if (StringUtils.IsNullEmptyOrWhiteSpace(xml))

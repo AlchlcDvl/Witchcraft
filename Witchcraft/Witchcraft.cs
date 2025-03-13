@@ -1,8 +1,6 @@
 namespace Witchcraft;
 
-[SalemMod]
-[SalemMenuItem]
-[WitchcraftMod(typeof(Witchcraft), hasFolder: true)]
+[SalemMod, SalemMenuItem, WitchcraftMod(typeof(Witchcraft), hasFolder: true)]
 public class Witchcraft
 {
     public static WitchcraftMod? Instance { get; private set; }
@@ -25,8 +23,8 @@ public class Witchcraft
     private static void DumpAndOpen()
     {
         Directory.Delete(Instance!.ModPath, true);
-        Directory.CreateDirectory(Instance!.ModPath);
+        Directory.CreateDirectory(Instance.ModPath);
         LogManager.SaveAllTheLogs();
-        Instance!.OpenDirectory();
+        Instance.OpenDirectory();
     }
 }

@@ -89,12 +89,8 @@ public static class UnityUtils
         return gameObject;
     }
 
-    public static GameObject NewChild(this GameObject gameObject, string name, Vector3? localPosition, Vector3? scale = null) => CreateGameObject(name, gameObject.transform, scale,
+    public static GameObject NewChild(this GameObject gameObject, string name, Vector3? localPosition = null, Vector3? scale = null) => CreateGameObject(name, gameObject.transform, scale,
         localPosition);
-
-    public static GameObject NewChild(this GameObject gameObject, string name, Vector3 localPosition = default) => CreateGameObject(name, gameObject.transform, null, localPosition);
-
-    public static GameObject NewChild(this GameObject gameObject, string name, Vector3? scale = null) => CreateGameObject(name, gameObject.transform, scale);
 
     public static float Dot(Color a, Color b) => (a.r * b.r) + (a.g * b.g) + (a.b * b.b) + (a.a * b.a);
 
@@ -109,13 +105,7 @@ public static class UnityUtils
 
     public static string ToHtmlStringRGBA(this Color color) => ((Color32)color).ToHtmlStringRGBA();
 
-    public static Transform GetParent(this Transform self, string name)
-    {
-        if (self.parent.name == name)
-            return self.parent;
-
-        return self.parent.GetParent(name);
-    }
+    public static Transform GetParent(this Transform self, string name) => self.parent.name == name ? self.parent : self.parent.GetParent(name);
 
     public static Color ToColor(this string html) => ColorUtility.TryParseHtmlString(html.StartsWith("#") ? html : $"#{html}", out var color) ? color : Color.white;
 }

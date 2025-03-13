@@ -23,22 +23,23 @@ public class LogManager : BaseManager
 
     private void LogSomething(object? message, LogLevel level, bool logIt = false)
     {
-        if (logIt || WitchcraftSettings.Debug())
-        {
-            message ??= $"message was null";
-            var now = DateTime.UtcNow;
-            Logger!.Log(level, $"[{now}] {message}");
-            SavedLogs += $"[{level,-7}, {now}] {message}\n";
-            AllLogs += $"[{Name}, {level,-7}, {now}] {message}\n";
-            LogMessageCount++;
-            AllLogsCount++;
+        if (!logIt && !WitchcraftSettings.Debug())
+            return;
 
-            if (LogMessageCount >= 10 || level is not LogLevel.Message or LogLevel.Info or LogLevel.Debug)
-                SaveLogs();
+        message ??= $"message was null";
+        var now = DateTime.UtcNow;
+        Logger!.Log(level, $"[{now}] {message}");
+        SavedLogs += $"[{level,-7}, {now}] {message}\n";
+        AllLogs += $"[{Name}, {level,-7}, {now}] {message}\n";
+        LogMessageCount++;
+        AllLogsCount++;
+        var levelCheck = level is not (LogLevel.Message or LogLevel.Info or LogLevel.Debug);
 
-            if (AllLogsCount >= 10 || level is not LogLevel.Message or LogLevel.Info or LogLevel.Debug)
-                GeneralUtils.SaveText("AllLogs.log", AllLogs!);
-        }
+        if (LogMessageCount >= 10 || levelCheck)
+            SaveLogs();
+
+        if (AllLogsCount >= 10 || levelCheck)
+            GeneralUtils.SaveText("AllLogs.log", AllLogs);
     }
 
     public void Error(object? message) => LogSomething(message, LogLevel.Error, true);

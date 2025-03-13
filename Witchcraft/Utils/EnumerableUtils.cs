@@ -59,18 +59,7 @@ public static class EnumerableUtils
         }
     }
 
-    public static int RemoveRange<T>(this List<T> list, IEnumerable<T> list2)
-    {
-        var result = 0;
-
-        foreach (var item in list2)
-        {
-            if (list.Contains(item))
-                result += list.RemoveAll(x => Equals(x, item));
-        }
-
-        return result;
-    }
+    public static int RemoveRange<T>(this List<T> list, IEnumerable<T> list2) => list2.Where(list.Contains).Sum(item => list.RemoveAll(x => Equals(x, item)));
 
     public static void AddRanges<T>(this List<T> main, params IEnumerable<T>[] items) => items.ForEach(main.AddRange);
 
@@ -95,13 +84,12 @@ public static class EnumerableUtils
 
                     foreach (var item in clone)
                     {
-                        if (Equals(item, item1))
-                        {
-                            var pos = clone.IndexOf(item);
+                        if (!Equals(item, item1))
+                            continue;
+                        var pos = clone.IndexOf(item);
 
-                            if (list.Remove(item))
-                                list.Insert(pos, item2);
-                        }
+                        if (list.Remove(item))
+                            list.Insert(pos, item2);
                     }
                 }
                 else
@@ -143,11 +131,11 @@ public static class EnumerableUtils
         {
             temp.Add(item);
 
-            if (temp.Count == splitCount)
-            {
-                result.Add(temp);
-                temp = [];
-            }
+            if (temp.Count != splitCount)
+                continue;
+
+            result.Add(temp);
+            temp = [];
         }
 
         if (temp.Count > 0)
@@ -247,7 +235,7 @@ public static class EnumerableUtils
                 return item;
         }
 
-        return default!;
+        return default;
     }
 
     public static IEnumerable<T> GetAll<T>(this IEnumerable<IEnumerable<T>> source) => source.SelectMany(x => x);

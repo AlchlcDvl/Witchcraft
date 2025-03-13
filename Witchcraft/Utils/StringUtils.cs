@@ -44,13 +44,13 @@ public static class StringUtils
 
         void AddWord(string word)
         {
-            var word1 = string.Empty;
-
             if (!overflow && word.Length > width)
             {
-                for (var startIndex = 0; startIndex < word.Length; startIndex += word1.Length)
+                string word1;
+
+                for (var index = 0; index < word.Length; index += word1.Length)
                 {
-                    word1 = word.Substring(startIndex, Math.Min(width, word.Length - startIndex));
+                    word1 = word.Substring(index, Math.Min(width, word.Length - index));
                     AddWord(word1);
                 }
             }

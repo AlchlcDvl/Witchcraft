@@ -1,22 +1,20 @@
 namespace Witchcraft.Modules;
 
 [Serializable]
-public struct HsbColor
+public struct HsbColor : IEquatable<HsbColor>
 {
     public float h { get; set; }
     public float s { get; set; }
     public float b { get; set; }
     public float a { get; set; }
 
-    public HsbColor(float h, float s, float b, float a)
+    public HsbColor(float h, float s, float b, float a = 1f)
     {
         this.h = h;
         this.s = s;
         this.b = b;
         this.a = a;
     }
-
-    public HsbColor(float h, float s, float b) : this(h, s, b, 1f) {}
 
     public HsbColor(Color col)
     {
@@ -64,11 +62,7 @@ public struct HsbColor
             else
                 ret.h = (g - b) / dif * 60f;
 
-            while (ret.h < 0)
-                ret.h += 360f;
-
-            while (ret.h > 360)
-                ret.h -= 360f;
+            ret.h = ((ret.h % 360f) + 360f) % 360f;
         }
         else
             ret.h = 0;
@@ -81,37 +75,38 @@ public struct HsbColor
 
     public float this[int index]
     {
-        readonly get
+        readonly get => index switch
         {
-            return index switch
-            {
-                0 => h,
-                1 => s,
-                2 => b,
-                3 => a,
-                _ => throw new IndexOutOfRangeException("Invalid HsbColor index (" + index + ")!"),
-            };
-        }
+            0 => h,
+            1 => s,
+            2 => b,
+            3 => a,
+            _ => throw new IndexOutOfRangeException("Invalid HsbColor index (" + index + ")!"),
+        };
         set
         {
             switch (index)
             {
                 case 0:
+                {
                     h = value;
                     break;
-
+                }
                 case 1:
+                {
                     s = value;
                     break;
-
+                }
                 case 2:
+                {
                     b = value;
                     break;
-
+                }
                 case 3:
+                {
                     a = value;
                     break;
-
+                }
                 default:
                     throw new IndexOutOfRangeException("Invalid Color index(" + index + ")!");
             }
@@ -128,11 +123,15 @@ public struct HsbColor
 
     public static HsbColor operator *(HsbColor a, float b) => new(a.h * b, a.s * b, a.b * b, a.a * b);
 
-    public static HsbColor operator *(float b, HsbColor a) => new(a.h * b, a.s * b, a.b * b, a.a * b);
-
     public static HsbColor operator /(HsbColor a, float b) => new(a.h / b, a.s / b, a.b / b, a.a / b);
 
-    public static HsbColor operator /(float b, HsbColor a) => new(a.h / b, a.s / b, a.b / b, a.a / b);
+    public static implicit operator HsbColor(Color col) => new(col);
+
+    public static implicit operator HsbColor(Color32 col) => new(col);
+
+    public static implicit operator Color(HsbColor col) => ToColor(col);
+
+    public static implicit operator Color32(HsbColor col) => ToColor(col);
 
     public static Color ToColor(HsbColor hsbColor)
     {
@@ -148,51 +147,61 @@ public struct HsbColor
 
             var h = hsbColor.h * 360f;
 
-            if (h < 60f)
+            switch (h)
             {
-                r = max;
-                g = (h * dif / 60f) + min;
-                b = min;
-            }
-            else if (h < 120f)
-            {
-                r = (-(h - 120f) * dif / 60f) + min;
-                g = max;
-                b = min;
-            }
-            else if (h < 180f)
-            {
-                r = min;
-                g = max;
-                b = ((h - 120f) * dif / 60f) + min;
-            }
-            else if (h < 240f)
-            {
-                r = min;
-                g = (-(h - 240f) * dif / 60f) + min;
-                b = max;
-            }
-            else if (h < 300f)
-            {
-                r = ((h - 240f) * dif / 60f) + min;
-                g = min;
-                b = max;
-            }
-            else if (h <= 360f)
-            {
-                r = max;
-                g = min;
-                b = (-(h - 360f) * dif / 60) + min;
-            }
-            else
-            {
-                r = 0;
-                g = 0;
-                b = 0;
+                case < 60f:
+                {
+                    r = max;
+                    g = (h * dif / 60f) + min;
+                    b = min;
+                    break;
+                }
+                case < 120f:
+                {
+                    r = (-(h - 120f) * dif / 60f) + min;
+                    g = max;
+                    b = min;
+                    break;
+                }
+                case < 180f:
+                {
+                    r = min;
+                    g = max;
+                    b = ((h - 120f) * dif / 60f) + min;
+                    break;
+                }
+                case < 240f:
+                {
+                    r = min;
+                    g = (-(h - 240f) * dif / 60f) + min;
+                    b = max;
+                    break;
+                }
+                case < 300f:
+                {
+                    r = ((h - 240f) * dif / 60f) + min;
+                    g = min;
+                    b = max;
+                    break;
+                }
+                case <= 360f:
+                {
+                    r = max;
+                    g = min;
+                    b = (-(h - 360f) * dif / 60f) + min;
+                    break;
+                }
+                default:
+                {
+                    r = 0;
+                    g = 0;
+                    b = 0;
+                    break;
+                }
             }
         }
 
-        return new(Mathf.Clamp01(r), Mathf.Clamp01(g), Mathf.Clamp01(b), hsbColor.a);
+        return new(Mathf.Clamp01(r), Mathf.Clamp01(g), Mathf.Clamp01(b), Mathf.Clamp01(hsbColor.a));
     }
 
     public readonly Color ToColor() => ToColor(this);
@@ -222,17 +231,7 @@ public struct HsbColor
             else if (b.s == 0)
                 h = a.h;
             else
-            {
-                var angle = Mathf.LerpAngle(a.h * 360f, b.h * 360f, t);
-
-                while (angle < 0f)
-                    angle += 360f;
-
-                while (angle > 360f)
-                    angle -= 360f;
-
-                h = angle / 360f;
-            }
+                h = ((Mathf.LerpAngle(a.h * 360f, b.h * 360f, t) % 360f) + 360f) % 360f / 360f;
 
             s = Mathf.Lerp(a.s, b.s, t);
         }
@@ -244,6 +243,7 @@ public struct HsbColor
 
     public static float PingPongReverse(float min, float max, float mul) => max - Mathf.PingPong(Time.time * mul, max - min);
 
+    // Letting errors be thrown because I want the error makeup to be identical to that of other parse methods
     public static HsbColor Parse(string input)
     {
         input = input.Replace(" ", string.Empty);
@@ -258,25 +258,36 @@ public struct HsbColor
         {
             var parts3 = part.Split(',');
 
-            if (parts3.Length == 1)
-                parts2.Add(float.Parse(parts3[0]));
-            else if (parts3.Length == 2)
-                parts2.Add(URandom.Range(float.Parse(parts3[0]), float.Parse(parts3[1])));
-            else if (parts3.Length is 3 or 4)
+            switch (parts3.Length)
             {
-                var min = float.Parse(parts3[0]);
-                var max = float.Parse(parts3[1]);
-                var mul = float.Parse(parts3[2]);
-                var reverse = parts.Length == 4 && bool.Parse(parts3[3]);
-                parts2.Add(reverse ? PingPongReverse(min, max, mul) : PingPong(min, max, mul));
+                case 1:
+                {
+                    parts2.Add(float.Parse(parts3[0]));
+                    break;
+                }
+                case 2:
+                {
+                    parts2.Add(URandom.Range(float.Parse(parts3[0]), float.Parse(parts3[1])));
+                    break;
+                }
+                case 3 or 4:
+                {
+                    var min = float.Parse(parts3[0]);
+                    var max = float.Parse(parts3[1]);
+                    var mul = float.Parse(parts3[2]);
+                    var reverse = parts.Length == 4 && bool.Parse(parts3[3]);
+                    parts2.Add(reverse ? PingPongReverse(min, max, mul) : PingPong(min, max, mul));
+                    break;
+                }
+                default:
+                    throw new ArgumentOutOfRangeException(input);
             }
-            else
-                throw new ArgumentOutOfRangeException(input);
         }
 
         return new(parts2[0], parts2[1], parts2[2], parts2.Count == 4 ? parts2[3] : 1f);
     }
 
+    // Since when has try parse ever thrown an error?
     public static bool TryParse(string input, out HsbColor color)
     {
         try
@@ -290,8 +301,4 @@ public struct HsbColor
             return false;
         }
     }
-
-    public static float Dot(HsbColor a, HsbColor b) => (a.h * b.h) + (a.s * b.s) + (a.b * b.b) + (a.a * b.a);
-
-    public static HsbColor Cross(HsbColor a, HsbColor b) => new((a.s * b.b) - (a.b * b.s), (a.h * b.b) - (a.b * b.h), (a.h * b.s) - (a.s * b.b), Mathf.Lerp(a.a, b.a, 0.5f));
 }
