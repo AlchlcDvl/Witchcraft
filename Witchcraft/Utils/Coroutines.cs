@@ -24,10 +24,6 @@ public static class Coroutines
 
     public static IEnumerator Wait(float duration)
     {
-        while (duration > 0)
-        {
-            duration -= Time.deltaTime;
-            yield return new WaitForEndOfFrame();
-        }
+        yield return new WaitForSeconds(duration);
     }
 }

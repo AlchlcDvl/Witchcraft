@@ -239,4 +239,15 @@ public static class EnumerableUtils
     }
 
     public static IEnumerable<T> GetAll<T>(this IEnumerable<IEnumerable<T>> source) => source.SelectMany(x => x);
+
+    public static IEnumerable<T2> Select<T1, T2>(this IEnumerable<T1> source, Func<int, T1, T2> selector)
+    {
+        var i = 0;
+
+        foreach (var item in source)
+        {
+            yield return selector(i, item);
+            i++;
+        }
+    }
 }

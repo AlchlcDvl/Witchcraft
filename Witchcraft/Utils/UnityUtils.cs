@@ -108,4 +108,14 @@ public static class UnityUtils
     public static Transform GetParent(this Transform self, string name) => self.parent.name == name ? self.parent : self.parent.GetParent(name);
 
     public static Color ToColor(this string html) => ColorUtility.TryParseHtmlString(html.StartsWith("#") ? html : $"#{html}", out var color) ? color : Color.white;
+
+    public static void ClearChildren(this Transform self)
+    {
+        for (var i = self.childCount - 1; i > -1; i--)
+        {
+            var child = self.GetChild(i);
+            child.transform.SetParent(null);
+            child.gameObject.Destroy();
+        }
+    }
 }
