@@ -1,52 +1,35 @@
-using System.Diagnostics.CodeAnalysis;
-
 namespace Witchcraft.Modules;
 
-[AttributeUsage(AttributeTargets.Class)]
-public class WitchcraftMod : Attribute
+public abstract class BaseMod
 {
-    public AssetManager? Assets { get; }
-    public LogManager? Logs { get; }
-    public ConfigManager? Configs { get; }
+    public abstract string Name { get; }
+
+    public virtual string[] Bundles { get; }
+    public virtual bool HasFolder { get; }
+
     public string ModPath { get; }
     public Type ModType { get; }
-    public string Name { get; }
-    public ModInfo? ModInfo { get; }
+    public ModInfo ModInfo { get; }
+    public AssetManager Assets { get; }
+    public LogManager Logs { get; }
+    public ConfigManager Configs { get; }
 
-    public WitchcraftMod(Type modType, string? name = null, string[]? bundles = null, bool hasFolder = false)
+    public BaseMod()
     {
-        ModType = modType;
-        Name = name ?? modType.Name;
+        ModType = GetType();
         ModPath = Path.Combine(ModManager.ModFoldersPath!, Name.Replace(" ", string.Empty));
 
-        Logs = new(Name, this); // Generating the logger first
+        Logs = new(Name, this, CustomLogColor, CustomLogCheck); // Generating the logger first
 
-        var blank = typeof(WitchcraftMod).GetMethod("BlankVoid", AccessTools.all);
+        Assets = new(Name, this, UponAssetsLoaded, UponAllAssetsLoaded, ModType.Assembly, Bundles ?? []); // Creating the asset manager for the mod
 
-        // Conditionally creating the asset manager
-        var method1 = modType.GetMethod(x => x.GetCustomAttribute<UponAssetsLoadedAttribute>() != null || x.Name.Contains("UponAssetsLoaded")) ?? blank;
-        var method2 = modType.GetMethod(x => x.GetCustomAttribute<UponAllAssetsLoadedAttribute>() != null || x.Name.Contains("UponAllAssetsLoaded")) ?? blank;
-
-        if (!method1!.IsStatic || !method2!.IsStatic)
-            Fatal("Cannot properly load assets if the marked methods are not static");
-        else
-        {
-            Assets = new(Name, this, () => method1.Invoke(null, null), () => method2.Invoke(null, null), modType.Assembly, bundles ?? []);
-            ModInfo = AssetManager.DeserializeJson<ModInfo>(Assets.GetString("modinfo")!);
-        }
-
-        // Conditionally creating the config manager
-        var method3 = modType.GetMethod(x => x.GetCustomAttribute<LoadConfigsAttribute>() != null || x.Name.Contains("LoadConfigs")) ?? blank;
-
-        if (!method3!.IsStatic)
-            Fatal("Cannot load configs because the method is not static");
-        else
-            Configs = new(Name, this, () => method3.Invoke(null, null));
+        ModInfo = AssetManager.DeserializeJson<ModInfo>(Assets.GetString("modinfo")!); // Generating mod info for configs
+        Configs = new(Name, this, LoadConfigs); // Creating the config manager
 
         // Attempting to create a directory
         try
         {
-            if (!Directory.Exists(ModPath) && hasFolder)
+            if (!Directory.Exists(ModPath) && HasFolder)
                 Directory.CreateDirectory(ModPath);
         }
         catch (Exception ex)
@@ -57,31 +40,46 @@ public class WitchcraftMod : Attribute
         // Attempting to register the mod
         if (!ModManager.RegisteredMods.TryAdd(Name, this))
             Fatal("Error in registering the mod because there was already another mod with the same name!");
-
-        Message("Attribute mod loaded!");
     }
 
-    public void Error(object? message) => Logs!.Error(message);
+    public abstract void Start();
 
-    public void Fatal(object? message) => Logs!.Fatal(message);
+    public virtual void UponAssetsLoaded() { }
 
-    public void Warning(object? message, bool logIt = false) => Logs!.Warning(message, logIt);
+    public virtual void UponAllAssetsLoaded() { }
 
-    public void Info(object? message, bool logIt = false) => Logs!.Info(message, logIt);
+    public virtual void LoadConfigs() { }
 
-    public void Message(object? message, bool logIt = false) => Logs!.Message(message, logIt);
+    public virtual ConsoleColor CustomLogColor(Enum value) => ConsoleColor.DarkGray;
 
-    public void Debug(object? message, bool logIt = false) => Logs!.Debug(message, logIt);
+    public virtual bool CustomLogCheck(Enum value) => false;
+
+    public void Error(object? message) => Logs.Error(message);
+
+    public void Fatal(object? message) => Logs.Fatal(message);
+
+    public void Warning(object? message, bool logIt = false) => Logs.Warning(message, logIt);
+
+    public void Info(object? message, bool logIt = false) => Logs.Info(message, logIt);
+
+    public void Message(object? message, bool logIt = false) => Logs.Message(message, logIt);
+
+    public void Debug(object? message, bool logIt = false) => Logs.Debug(message, logIt);
+
+    public void Custom(object? message, Enum level, bool logIt = false) => Logs.Custom(message, level, logIt);
 
     public void OpenDirectory() => GeneralUtils.OpenDirectory(ModPath);
 
-    private static void BlankVoid() {}
-
-    public static implicit operator bool(WitchcraftMod exists) => exists != null;
+    public static implicit operator bool(BaseMod exists) => exists != null;
 }
 
-public static class ModSingleton<T>
+public abstract class BaseMod<T> : BaseMod where T : BaseMod
 {
-    public static WitchcraftMod? Instance => InstancePriv ??= ModManager.Instance(typeof(T));
-    private static WitchcraftMod? InstancePriv;
+    public static T? Instance => ModSingleton<T>.Instance;
+}
+
+public static class ModSingleton<T> where T : BaseMod
+{
+    public static T? Instance => instance ??= ModManager.Instance<T>();
+    private static T? instance;
 }

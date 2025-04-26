@@ -10,6 +10,7 @@ public class AssetManager : BaseManager
     private Dictionary<string, HashSet<UObject>> LoadedObjects { get; } = [];
     private Dictionary<string, HashSet<string>> UnloadedObjects { get; } = [];
     public Dictionary<string, string> Xmls { get; } = [];
+    private Dictionary<Type, (string[], Func<string, UObject>)> AssetTypeExtensions { get; }
 
     private Assembly Core { get; }
     private Action PostLoad { get; }
@@ -17,15 +18,23 @@ public class AssetManager : BaseManager
     private string[] BundleNames { get; }
 
     public static List<AssetManager> Managers { get; } = [];
-    public static event Action? PostAllLoaded;
+    public static event Action? PostAllLoaded = delegate { };
 
-    public AssetManager(string name, WitchcraftMod mod, Action postLoad, Action postAllLoad, Assembly core, string[] bundles) : base(name, mod)
+    public AssetManager(string name, BaseMod mod, Action postLoad, Action postAllLoad, Assembly core, string[] bundles) : base(name, mod)
     {
         Core = core;
         PostLoad = postLoad;
         PostAllLoad = postAllLoad;
-        BundleNames = bundles;
+        BundleNames = bundles ?? [];
         PostAllLoaded += PostAllLoad;
+        AssetTypeExtensions = new()
+        {
+            [typeof(Sprite)] = (["png", ".jpg"], path => LoadSpriteFromResources(path)),
+            [typeof(Texture2D)] = (["png", ".jpg"], LoadTextureFromResources),
+            [typeof(AudioClip)] = (["wav", "mp3", "ogg", "raw"], path => path.EndsWith("wav") ? LoadWavAudioFromResources(path) : LoadAudioFromResources(path)),
+            [typeof(TextAsset)] = (["txt", "log", "json"], LoadTextFromResources),
+            [typeof(Gif)] = (["gif"], LoadGifFromResources)
+        };
         StoreAssetNames();
         Managers.Add(this);
     }
@@ -79,18 +88,8 @@ public class AssetManager : BaseManager
 
         var tType = typeof(T);
 
-        if (tType == typeof(Sprite) && strings.TryFinding(x => x.EndsWithAny(".png", ".jpg"), out var path))
-            result = AddAsset(name, LoadSpriteFromResources(path!));
-        else if (tType == typeof(AudioClip) && strings.TryFinding(x => x.EndsWithAny(".mp3", ".ogg", ".raw"), out path))
-            result = AddAsset(name, LoadAudioFromResources(path!));
-        else if (tType == typeof(AudioClip) && strings.TryFinding(x => x.EndsWithAny(".wav"), out path))
-            result = AddAsset(name, LoadWavAudioFromResources(path!));
-        else if (tType == typeof(Texture2D) && strings.TryFinding(x => x.EndsWithAny(".png", ".jpg"), out path))
-            result = AddAsset(name, LoadTextureFromResources(path!));
-        else if (tType == typeof(TextAsset) && strings.TryFinding(x => x.EndsWithAny(".txt", ".log", ".json"), out path))
-            result = AddAsset(name, LoadTextFromResources(path!));
-        else if (tType == typeof(Gif) && strings.TryFinding(x => x.EndsWithAny(".gif"), out path))
-            result = AddAsset(name, LoadGifFromResources(path!));
+        if (AssetTypeExtensions.TryGetValue(tType, out var pair) && strings.TryFinding(x => x.EndsWithAny(pair.Item1), out var path))
+            result = AddAsset(name, pair.Item2(path!));
         else
         {
             if (name != "Placeholder" && fetchPlaceholder)
@@ -295,7 +294,7 @@ public class AssetManager : BaseManager
 
     public static T[] DeserializeArrayJson<T>(string data) => JsonConvert.DeserializeObject<T[]>(data)!;
 
-    public static AssetManager? Assets<T>() => ModSingleton<T>.Instance?.Assets;
+    public static AssetManager? Assets<T>() where T : BaseMod => ModManager.Instance<T>()?.Assets;
 
     // courtesy of pat, love ya mate
     public static TMP_SpriteAsset BuildGlyphs(IEnumerable<Sprite> sprites, string spriteAssetName, Dictionary<string, string> index)

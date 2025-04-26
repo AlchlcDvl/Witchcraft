@@ -1,4 +1,5 @@
 using BepInEx.Logging;
+using BepInEx;
 
 namespace Witchcraft.Managers;
 
@@ -6,40 +7,63 @@ public class LogManager : BaseManager
 {
     private int LogMessageCount { get; set; }
     private string SavedLogs { get; set; }
-    private ManualLogSource? Logger { get; }
+    private ManualLogSource Logger { get; }
+    private Func<Enum, ConsoleColor> LogMap { get; }
+    private Func<Enum, bool> LevelCheck { get; }
 
     private static string? AllLogs = string.Empty;
     private static int AllLogsCount;
+    private static DiskLogListener DiskLog { get; set; }
 
     public static List<LogManager> Managers { get; } = [];
 
-    public LogManager(string name, WitchcraftMod mod) : base(name, mod)
+    public LogManager(string name, BaseMod mod, Func<Enum, ConsoleColor> logMap, Func<Enum, bool> levelCheck) : base(name, mod)
     {
         LogMessageCount = 0;
         SavedLogs = string.Empty;
         Logger = BepInEx.Logging.Logger.CreateLogSource(Name.Replace(" ", string.Empty));
+        LogMap = logMap;
+        LevelCheck = levelCheck;
         Managers.Add(this);
     }
 
-    private void LogSomething(object? message, LogLevel level, bool logIt = false)
+    private void LogSomething(object? message, Enum level, bool logIt = false)
     {
         if (!logIt && !WitchcraftSettings.Debug())
             return;
 
-        message ??= $"message was null";
+        message ??= "message was null";
         var now = DateTime.UtcNow;
-        Logger!.Log(level, $"[{now}] {message}");
         SavedLogs += $"[{level,-7}, {now}] {message}\n";
         AllLogs += $"[{Name}, {level,-7}, {now}] {message}\n";
+
+        switch (level)
+        {
+            case LogLevel bll:
+            {
+                Logger.Log(bll, $"[{now}] {message}");
+                break;
+            }
+            default:
+            {
+                var console = $"[{level,-7}:{Name,10}] [{now}] {message}";
+                DiskLog.LogWriter.WriteLine(console);
+                ConsoleManager.SetConsoleColor(LogMap(level));
+                ConsoleManager.ConsoleStream.Write(console + Environment.NewLine);
+                ConsoleManager.SetConsoleColor(ConsoleColor.Gray);
+                break;
+            }
+        }
+
         LogMessageCount++;
         AllLogsCount++;
-        var levelCheck = level is not (LogLevel.Message or LogLevel.Info or LogLevel.Debug);
+        var levelCheck = level is LogLevel.Fatal or LogLevel.Error or LogLevel.Warning || LevelCheck(level);
 
         if (LogMessageCount >= 10 || levelCheck)
             SaveLogs();
 
         if (AllLogsCount >= 10 || levelCheck)
-            GeneralUtils.SaveText("AllLogs.log", AllLogs);
+            SaveAllLogs();
     }
 
     public void Error(object? message) => LogSomething(message, LogLevel.Error, true);
@@ -54,11 +78,27 @@ public class LogManager : BaseManager
 
     public void Debug(object? message, bool logIt = false) => LogSomething(message, LogLevel.Debug, logIt);
 
-    public static void SaveAllLogs() => GeneralUtils.SaveText("AllLogs.log", AllLogs!);
+    public void Custom(object? message, Enum level, bool logIt = false) => LogSomething(message, level, logIt);
 
-    public void SaveLogs() => GeneralUtils.SaveText($"{Name}.log", SavedLogs);
+    public static void SaveAllLogs()
+    {
+        GeneralUtils.SaveText("AllLogs.log", AllLogs!, false);
+        AllLogs = "";
+    }
 
-    public static LogManager? Log<T>() => ModSingleton<T>.Instance?.Logs;
+    public void SaveLogs()
+    {
+        GeneralUtils.SaveText($"{Name}.log", SavedLogs, false);
+        SavedLogs = "";
+    }
+
+    public static LogManager? Log<T>() where T : BaseMod => ModManager.Instance<T>()?.Logs;
+
+    public static void SetUpLogging()
+    {
+        Directory.GetFiles(Witchcraft.Instance!.ModPath).ForEach(File.Delete);
+        DiskLog = BepInEx.Logging.Logger.Listeners.OfType<DiskLogListener>().FirstOrDefault();
+    }
 
     public static void SaveAllTheLogs()
     {

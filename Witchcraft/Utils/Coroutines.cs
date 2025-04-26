@@ -5,7 +5,11 @@ namespace Witchcraft.Utils;
 
 public static class Coroutines
 {
-    public static Coroutine Start(IEnumerator coroutine) => ApplicationController.ApplicationContext.StartCoroutine(coroutine);
+    public static IEnumerator Start(IEnumerator coroutine)
+    {
+        ApplicationController.ApplicationContext.StartCoroutine(coroutine);
+        return coroutine;
+    }
 
     public static void Stop(IEnumerator coroutine) => ApplicationController.ApplicationContext.StopCoroutine(coroutine);
 

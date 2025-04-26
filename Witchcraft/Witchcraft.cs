@@ -1,18 +1,13 @@
 namespace Witchcraft;
 
-[SalemMod, SalemMenuItem, WitchcraftMod(typeof(Witchcraft), hasFolder: true)]
-public class Witchcraft
+[SalemMod, SalemMenuItem]
+public class Witchcraft : BaseMod<Witchcraft>
 {
-    public static WitchcraftMod? Instance { get; private set; }
+    public override string Name => "Witchcraft";
 
-    public void Start()
-    {
-        Instance = ModSingleton<Witchcraft>.Instance;
-        Instance!.Message("Magic is brewing!", true);
-    }
+    public override void Start() => Message("Magic is brewing!", true);
 
-    [UponAssetsLoaded]
-    public static void UponLoad() => LogsButton.Icon = Instance!.Assets?.GetSprite("Thumbnail");
+    public override void UponAssetsLoaded() => LogsButton.Icon = Assets.GetSprite("Thumbnail");
 
     public static readonly SalemMenuButton LogsButton = new()
     {

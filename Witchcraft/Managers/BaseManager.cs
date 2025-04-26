@@ -1,7 +1,7 @@
 namespace Witchcraft.Managers;
 
-public abstract class BaseManager(string name, WitchcraftMod mod)
+public abstract class BaseManager(string name, BaseMod mod)
 {
     public string Name { get; } = name;
-    public WitchcraftMod Mod { get; } = mod;
+    public BaseMod Mod { get; } = mod;
 }

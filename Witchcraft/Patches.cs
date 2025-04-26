@@ -60,6 +60,7 @@ public static class LoadAllAssets
 {
     public static void Postfix(Launch __instance)
     {
+        LogManager.SetUpLogging();
         ConfigManager.LoadAllConfigs(__instance);
         AssetManager.LoadAllAssets();
     }
