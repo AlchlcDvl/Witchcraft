@@ -27,9 +27,9 @@ public static class GeneralUtils
         {
             return File.ReadAllText(Path.Combine(path, fileName));
         }
-        catch
+        catch (Exception e)
         {
-            Witchcraft.Instance!.Error($"Error reading {fileName}, {path}");
+            Witchcraft.Instance!.Error($"Error reading {fileName}, {path}\n{e}");
             return string.Empty;
         }
     }

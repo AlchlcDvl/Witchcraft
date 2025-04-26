@@ -19,7 +19,7 @@ public abstract class BaseMod
         ModType = GetType();
         ModPath = Path.Combine(ModManager.ModFoldersPath!, Name.Replace(" ", string.Empty));
 
-        Logs = new(Name, this, CustomLogColor, CustomLogCheck); // Generating the logger first
+        Logs = new(Name, this, CustomLogColor); // Generating the logger first
 
         Assets = new(Name, this, UponAssetsLoaded, UponAllAssetsLoaded, ModType.Assembly, Bundles ?? []); // Creating the asset manager for the mod
 
@@ -52,8 +52,6 @@ public abstract class BaseMod
 
     public virtual ConsoleColor CustomLogColor(Enum value) => ConsoleColor.DarkGray;
 
-    public virtual bool CustomLogCheck(Enum value) => false;
-
     public void Error(object? message) => Logs.Error(message);
 
     public void Fatal(object? message) => Logs.Fatal(message);
@@ -75,7 +73,8 @@ public abstract class BaseMod
 
 public abstract class BaseMod<T> : BaseMod where T : BaseMod
 {
-    public static T? Instance => ModSingleton<T>.Instance;
+    public static T? Instance => instance ??= ModManager.Instance<T>();
+    private static T? instance;
 }
 
 public static class ModSingleton<T> where T : BaseMod

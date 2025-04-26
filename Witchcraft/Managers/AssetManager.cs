@@ -436,9 +436,3 @@ public enum StreamType
     Disk,
     Resources
 }
-
-[AttributeUsage(AttributeTargets.Method)]
-public class UponAssetsLoadedAttribute : Attribute;
-
-[AttributeUsage(AttributeTargets.Method)]
-public class UponAllAssetsLoadedAttribute : Attribute;

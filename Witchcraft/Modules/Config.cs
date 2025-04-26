@@ -2,9 +2,12 @@ using BepInEx.Configuration;
 
 namespace Witchcraft.Modules;
 
-public class ConfigBase;
+public abstract class ConfigBase(ConfigEntryBase entry)
+{
+    internal ConfigEntryBase Base { get; } = entry;
+}
 
-public class Config<T>(ConfigEntry<T> entry) : ConfigBase
+public class Config<T>(ConfigEntry<T> entry) : ConfigBase(entry)
 {
     internal ConfigEntry<T> Entry { get; } = entry;
 

@@ -9,7 +9,6 @@ public class LogManager : BaseManager
     private string SavedLogs { get; set; }
     private ManualLogSource Logger { get; }
     private Func<Enum, ConsoleColor> LogMap { get; }
-    private Func<Enum, bool> LevelCheck { get; }
 
     private static string? AllLogs = string.Empty;
     private static int AllLogsCount;
@@ -17,13 +16,12 @@ public class LogManager : BaseManager
 
     public static List<LogManager> Managers { get; } = [];
 
-    public LogManager(string name, BaseMod mod, Func<Enum, ConsoleColor> logMap, Func<Enum, bool> levelCheck) : base(name, mod)
+    public LogManager(string name, BaseMod mod, Func<Enum, ConsoleColor> logMap) : base(name, mod)
     {
         LogMessageCount = 0;
         SavedLogs = string.Empty;
         Logger = BepInEx.Logging.Logger.CreateLogSource(Name.Replace(" ", string.Empty));
         LogMap = logMap;
-        LevelCheck = levelCheck;
         Managers.Add(this);
     }
 
@@ -36,14 +34,12 @@ public class LogManager : BaseManager
         var now = DateTime.UtcNow;
         SavedLogs += $"[{level,-7}, {now}] {message}\n";
         AllLogs += $"[{Name}, {level,-7}, {now}] {message}\n";
-        bool levelCheck;
 
         switch (level)
         {
             case LogLevel bll:
             {
                 Logger.Log(bll, $"[{now}] {message}");
-                levelCheck = bll.HasAnyFlag(LogLevel.Fatal, LogLevel.Error, LogLevel.Warning);
                 break;
             }
             default:
@@ -53,7 +49,6 @@ public class LogManager : BaseManager
                 ConsoleManager.SetConsoleColor(LogMap(level));
                 ConsoleManager.ConsoleStream.Write(console + Environment.NewLine);
                 ConsoleManager.SetConsoleColor(ConsoleColor.Gray);
-                levelCheck = LevelCheck(level);
                 break;
             }
         }
@@ -61,10 +56,10 @@ public class LogManager : BaseManager
         LogMessageCount++;
         AllLogsCount++;
 
-        if (LogMessageCount >= 10 || levelCheck)
+        if (LogMessageCount >= 10)
             SaveLogs();
 
-        if (AllLogsCount >= 10 || levelCheck)
+        if (AllLogsCount >= 10)
             SaveAllLogs();
     }
 
