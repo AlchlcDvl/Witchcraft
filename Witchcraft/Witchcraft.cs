@@ -4,6 +4,7 @@ namespace Witchcraft;
 public class Witchcraft : BaseMod<Witchcraft>
 {
     public override string Name => "Witchcraft";
+    public override bool HasFolder => true;
 
     public override void Start() => Message("Magic is brewing!", true);
 

@@ -4,8 +4,8 @@ public abstract class BaseMod
 {
     public abstract string Name { get; }
 
-    public virtual string[] Bundles { get; }
-    public virtual bool HasFolder { get; }
+    public virtual string[] Bundles { get; } = [];
+    public virtual bool HasFolder { get; } = false;
 
     public string ModPath { get; }
     public Type ModType { get; }
