@@ -84,4 +84,14 @@ public static class GeneralUtils
     public static T[]? GetEnumValues<T>() where T : struct, Enum => Enum.GetValues(typeof(T)) as T[];
 
     public static bool IsAny<T>(this T item, params T[] items) => items.Contains(item);
+
+    public static bool HasAnyFlag<T>(this T value, params T[] flags) where T : struct, Enum
+    {
+        var tType = typeof(T);
+
+        if (tType.GetCustomAttribute<FlagsAttribute>() == null)
+            throw new ArgumentException($"{tType.Name} is not a flag enum");
+
+        return flags.Any(x => value.HasFlag(x));
+    }
 }

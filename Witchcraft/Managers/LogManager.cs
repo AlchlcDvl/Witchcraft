@@ -36,12 +36,14 @@ public class LogManager : BaseManager
         var now = DateTime.UtcNow;
         SavedLogs += $"[{level,-7}, {now}] {message}\n";
         AllLogs += $"[{Name}, {level,-7}, {now}] {message}\n";
+        bool levelCheck;
 
         switch (level)
         {
             case LogLevel bll:
             {
                 Logger.Log(bll, $"[{now}] {message}");
+                levelCheck = bll.HasAnyFlag(LogLevel.Fatal, LogLevel.Error, LogLevel.Warning);
                 break;
             }
             default:
@@ -51,13 +53,13 @@ public class LogManager : BaseManager
                 ConsoleManager.SetConsoleColor(LogMap(level));
                 ConsoleManager.ConsoleStream.Write(console + Environment.NewLine);
                 ConsoleManager.SetConsoleColor(ConsoleColor.Gray);
+                levelCheck = LevelCheck(level);
                 break;
             }
         }
 
         LogMessageCount++;
         AllLogsCount++;
-        var levelCheck = level is LogLevel.Fatal or LogLevel.Error or LogLevel.Warning || LevelCheck(level);
 
         if (LogMessageCount >= 10 || levelCheck)
             SaveLogs();
