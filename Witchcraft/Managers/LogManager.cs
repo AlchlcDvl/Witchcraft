@@ -77,17 +77,9 @@ public class LogManager : BaseManager
 
     public void Custom(object? message, Enum level, bool logIt = false) => LogSomething(message, level, logIt);
 
-    public static void SaveAllLogs()
-    {
-        GeneralUtils.SaveText("AllLogs.log", AllLogs!, false);
-        AllLogs = "";
-    }
+    public static void SaveAllLogs() => GeneralUtils.SaveText("AllLogs.log", AllLogs!);
 
-    public void SaveLogs()
-    {
-        GeneralUtils.SaveText($"{Name}.log", SavedLogs, false);
-        SavedLogs = "";
-    }
+    public void SaveLogs() => GeneralUtils.SaveText($"{Name}.log", SavedLogs);
 
     public static LogManager? Log<T>() where T : BaseMod => ModManager.Instance<T>()?.Logs;
 
