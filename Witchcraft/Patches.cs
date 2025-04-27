@@ -60,47 +60,6 @@ public static class LoadAllAssets
 {
     public static void Postfix(Launch __instance)
     {
-        var baseType = typeof(BaseMod);
-
-        foreach (var mod in Directory.GetFiles(Witchcraft.ModsPath, "*.dll"))
-        {
-            var assembly = Assembly.Load(File.ReadAllBytes(mod));
-            var types = AccessTools.GetTypesFromAssembly(assembly);
-            var modType = types.FirstOrDefault(baseType.IsAssignableFrom);
-
-            if (modType == null)
-                continue;
-
-            var modInstance = (BaseMod)Activator.CreateInstance(modType);
-            ModStates.InstalledMods.Add(modInstance.ModInfo);
-
-            if (!Witchcraft.IsModValid(modInstance.ModInfo))
-            {
-                Witchcraft.Instance!.Warning(modInstance.ModInfo.DisplayName + " could not be loaded because it was " + modInstance.ModInfo.LoadFail);
-                ModStates.DisabledMods.Add(modInstance.ModInfo);
-                continue;
-            }
-
-            try
-            {
-                ModStates.EnabledMods.Add(modInstance.ModInfo);
-                Witchcraft.PatchAll(new(modInstance.ModInfo.HarmonyId), types);
-                Launch.DefineModSettings(modInstance.ModInfo);
-                Witchcraft.DefineModButtons(types);
-                modInstance.Start();
-                modInstance.ModInfo.AssemblyPath = mod;
-                modInstance.ModInfo.Thumbnail = modInstance.Assets.GetSprite("Thumbnail");
-                ModStates.LoadedMods.Add(modInstance.ModInfo);
-                Witchcraft.Instance!.Info(modInstance.ModInfo.DisplayName + " loaded!");
-            }
-            catch (Exception ex)
-            {
-                Witchcraft.Instance!.Error(ex);
-                modInstance.ModInfo.LoadFail = ModInfo.LoadFailReason.ERRORLOADING;
-                ModStates.DisabledMods.Add(modInstance.ModInfo);
-            }
-        }
-
         LogManager.SetUpLogging();
         ConfigManager.LoadAllConfigs(__instance);
         AssetManager.LoadAllAssets();

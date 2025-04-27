@@ -85,7 +85,7 @@ public class LogManager : BaseManager
 
     public static void SetUpLogging()
     {
-        Directory.GetFiles(Witchcraft.LogsPath, "*.log").ForEach(File.Delete);
+        Directory.GetFiles(Witchcraft.Instance!.ModPath, "*.log").ForEach(File.Delete);
         DiskLog = BepInEx.Logging.Logger.Listeners.OfType<DiskLogListener>().FirstOrDefault();
     }
 

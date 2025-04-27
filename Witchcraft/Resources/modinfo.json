@@ -2,8 +2,9 @@
   "HarmonyId": "alchlcsystm.witchcraft",
   "DisplayName": "Witchcraft",
   "Authors": [ "AlchlcSystm" ],
-  "Description": "An improvement to SalemModLoader that seeks to change the loader!",
+  "Description": "A library of utility methods for developers!",
   "Version": "1.2.0",
+  "ModLib": true,
   "Discord": "https://discord.gg/cd27aDQDY9",
   "Settings":
   {
