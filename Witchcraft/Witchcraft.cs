@@ -13,7 +13,7 @@ public class Witchcraft : BaseMod<Witchcraft>
 [SalemMod]
 public class SmlModLoadingIsShit
 {
-    public void Start() => new Witchcraft().Start();
+    public void Start() => Witchcraft.Instance!.Start();
 }
 
 [SalemMenuItem]
