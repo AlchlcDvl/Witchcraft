@@ -2,20 +2,8 @@
   "HarmonyId": "alchlcsystm.witchcraft",
   "DisplayName": "Witchcraft",
   "Authors": [ "AlchlcSystm" ],
-  "Description": "An improvement to SalemModLoader that seeks to change the loader!",
+  "Description": "A library of utility methods for developers!",
   "Version": "1.2.0",
-  "Discord": "https://discord.gg/cd27aDQDY9",
-  "Settings":
-  {
-    "CheckboxSettings":
-    [
-      {
-        "Name": "Enable Debugging",
-        "SettingID": "witchcraft.debug",
-        "Description": "Toggles whether logs will be displayed on the BepInEx log console (keep it off, only turn on if a mod dev tells you to)",
-        "DefaultValue": false,
-        "AvailableInGame": true
-      }
-    ]
-  }
+  "ModLib": true,
+  "Discord": "https://discord.gg/cd27aDQDY9"
 }

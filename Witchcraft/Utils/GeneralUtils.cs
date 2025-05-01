@@ -5,51 +5,6 @@ namespace Witchcraft.Utils;
 
 public static class GeneralUtils
 {
-    public static void SaveText(string fileName, string textToSave, bool overrideText = true, string? path = null)
-    {
-        path ??= Witchcraft.Instance!.ModPath;
-
-        try
-        {
-            File.WriteAllText(Path.Combine(path, fileName), (overrideText ? string.Empty : ReadText(fileName, path)) + textToSave);
-        }
-        catch (Exception e)
-        {
-            Witchcraft.Instance!.Error($"Unable to save to {fileName}, {path}:\n{e}");
-        }
-    }
-
-    public static string ReadText(string fileName, string? path = null)
-    {
-        path ??= Witchcraft.Instance!.ModPath;
-
-        try
-        {
-            return File.ReadAllText(Path.Combine(path, fileName));
-        }
-        catch (Exception e)
-        {
-            Witchcraft.Instance!.Error($"Error reading {fileName}, {path}\n{e}");
-            return string.Empty;
-        }
-    }
-
-    public static byte[] ReadFully(this Stream input)
-    {
-        using var memoryStream = new MemoryStream();
-        input.CopyTo(memoryStream);
-        return memoryStream.ToArray();
-    }
-
-    public static void OpenDirectory(string path)
-    {
-        // code stolen from jan who stole from tuba
-        if (Environment.OSVersion.Platform is PlatformID.MacOSX or PlatformID.Unix)
-            Process.Start("open", $"\"{path}\"");
-        else
-            Application.OpenURL($"file://{path}");
-    }
-
     public static int GetNumeral(this BitArray array, int startIndex, int bitLength)
     {
         var newArray = new BitArray(bitLength);
@@ -79,7 +34,7 @@ public static class GeneralUtils
         return result[0];
     }
 
-    public static MethodInfo? GetMethod(this Type type, Func<MethodInfo, bool> predicate) => type.GetMethods().Find(predicate);
+    public static MethodInfo? GetMethod(this Type type, Func<MethodInfo, bool> predicate) => type.GetMethods(AccessTools.all).Find(predicate);
 
     public static T[]? GetEnumValues<T>() where T : struct, Enum => Enum.GetValues(typeof(T)) as T[];
 

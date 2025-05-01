@@ -5,8 +5,6 @@ namespace Witchcraft.Modules;
 // Yoinked this lovely piece of code from Daemon at https://github.com/DaemonBeast/Mitochondria/blob/main/Mitochondria.Core/Utilities/Structures/Map.cs albeit with a few changes of my own
 public class ValueMap<T1, T2> : IDictionary<T1, T2>, IReadOnlyDictionary<T1, T2> where T1: notnull where T2 : notnull
 {
-    public ValueMap<T2, T1> Reverse { get; }
-
     private readonly Dictionary<T1, T2> Forward;
     private readonly Dictionary<T2, T1> Backward;
 
@@ -23,24 +21,12 @@ public class ValueMap<T1, T2> : IDictionary<T1, T2>, IReadOnlyDictionary<T1, T2>
     {
         Forward = [];
         Backward = [];
-
-        Reverse = new(this, Backward, Forward);
     }
 
     public ValueMap(IEnumerable<KeyValuePair<T1, T2>> collection)
     {
         Forward = collection.ToDictionary(p => p.Key, p => p.Value);
         Backward = collection.ToDictionary(p => p.Value, p => p.Key);
-
-        Reverse = new(this, Backward, Forward);
-    }
-
-    private ValueMap(ValueMap<T2, T1> reverse, Dictionary<T1, T2> forward, Dictionary<T2, T1> back)
-    {
-        Reverse = reverse;
-
-        Forward = forward;
-        Backward = back;
     }
 
     public IEnumerator<KeyValuePair<T1, T2>> GetEnumerator() => Forward.GetEnumerator();

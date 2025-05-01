@@ -29,10 +29,6 @@ public struct HsbColor : IEquatable<HsbColor>
 
     public readonly bool Equals(HsbColor other) => h.Equals(other.h) && s.Equals(other.s) && b.Equals(other.b) && a.Equals(other.a);
 
-    public static bool operator ==(HsbColor left, HsbColor right) => left.Equals(right);
-
-    public static bool operator !=(HsbColor left, HsbColor right) => !(left == right);
-
     public override readonly int GetHashCode() => HashCode.Combine(h, s, b, a);
 
     public static HsbColor FromColor(Color color)
@@ -72,66 +68,6 @@ public struct HsbColor : IEquatable<HsbColor>
         ret.b = max;
         return ret;
     }
-
-    public float this[int index]
-    {
-        readonly get => index switch
-        {
-            0 => h,
-            1 => s,
-            2 => b,
-            3 => a,
-            _ => throw new IndexOutOfRangeException("Invalid HsbColor index (" + index + ")!"),
-        };
-        set
-        {
-            switch (index)
-            {
-                case 0:
-                {
-                    h = value;
-                    break;
-                }
-                case 1:
-                {
-                    s = value;
-                    break;
-                }
-                case 2:
-                {
-                    b = value;
-                    break;
-                }
-                case 3:
-                {
-                    a = value;
-                    break;
-                }
-                default:
-                    throw new IndexOutOfRangeException("Invalid Color index(" + index + ")!");
-            }
-        }
-    }
-
-    public static HsbColor operator +(HsbColor a, HsbColor b) => new(a.h + b.h, a.s + b.s, a.b + b.b, a.a + b.a);
-
-    public static HsbColor operator -(HsbColor a, HsbColor b) => new(a.h - b.h, a.s - b.s, a.b - b.b, a.a - b.a);
-
-    public static HsbColor operator *(HsbColor a, HsbColor b) => new(a.h * b.h, a.s * b.s, a.b * b.b, a.a * b.a);
-
-    public static HsbColor operator /(HsbColor a, HsbColor b) => new(a.h / b.h, a.s / b.s, a.b / b.b, a.a / b.a);
-
-    public static HsbColor operator *(HsbColor a, float b) => new(a.h * b, a.s * b, a.b * b, a.a * b);
-
-    public static HsbColor operator /(HsbColor a, float b) => new(a.h / b, a.s / b, a.b / b, a.a / b);
-
-    public static implicit operator HsbColor(Color col) => new(col);
-
-    public static implicit operator HsbColor(Color32 col) => new(col);
-
-    public static implicit operator Color(HsbColor col) => ToColor(col);
-
-    public static implicit operator Color32(HsbColor col) => ToColor(col);
 
     public static Color ToColor(HsbColor hsbColor)
     {
@@ -301,4 +237,68 @@ public struct HsbColor : IEquatable<HsbColor>
             return false;
         }
     }
+
+    public float this[int index]
+    {
+        readonly get => index switch
+        {
+            0 => h,
+            1 => s,
+            2 => b,
+            3 => a,
+            _ => throw new IndexOutOfRangeException("Invalid HsbColor index (" + index + ")!"),
+        };
+        set
+        {
+            switch (index)
+            {
+                case 0:
+                {
+                    h = value;
+                    break;
+                }
+                case 1:
+                {
+                    s = value;
+                    break;
+                }
+                case 2:
+                {
+                    b = value;
+                    break;
+                }
+                case 3:
+                {
+                    a = value;
+                    break;
+                }
+                default:
+                    throw new IndexOutOfRangeException("Invalid Color index(" + index + ")!");
+            }
+        }
+    }
+
+    public static HsbColor operator +(HsbColor a, HsbColor b) => new(a.h + b.h, a.s + b.s, a.b + b.b, a.a + b.a);
+
+    public static HsbColor operator -(HsbColor a, HsbColor b) => new(a.h - b.h, a.s - b.s, a.b - b.b, a.a - b.a);
+
+    public static HsbColor operator *(HsbColor a, HsbColor b) => new(a.h * b.h, a.s * b.s, a.b * b.b, a.a * b.a);
+
+    public static HsbColor operator /(HsbColor a, HsbColor b) => new(a.h / b.h, a.s / b.s, a.b / b.b, a.a / b.a);
+
+    public static HsbColor operator *(HsbColor a, float b) => new(a.h * b, a.s * b, a.b * b, a.a * b);
+
+    public static HsbColor operator /(HsbColor a, float b) => new(a.h / b, a.s / b, a.b / b, a.a / b);
+
+    public static implicit operator HsbColor(Color col) => new(col);
+
+    public static implicit operator HsbColor(Color32 col) => new(col);
+
+    public static implicit operator Color(HsbColor col) => ToColor(col);
+
+    public static implicit operator Color32(HsbColor col) => ToColor(col);
+
+    public static bool operator ==(HsbColor left, HsbColor right) => left.Equals(right);
+
+    public static bool operator !=(HsbColor left, HsbColor right) => !(left == right);
 }

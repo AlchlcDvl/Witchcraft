@@ -5,7 +5,7 @@ namespace Witchcraft.Utils;
 
 public static class Coroutines
 {
-    public static IEnumerator Start(IEnumerator coroutine)
+    public static T Start<T>(T coroutine) where T : IEnumerator
     {
         ApplicationController.ApplicationContext.StartCoroutine(coroutine);
         return coroutine;
@@ -20,7 +20,7 @@ public static class Coroutines
         for (var t = 0f; t < duration; t += Time.deltaTime)
         {
             action(t / duration);
-            yield return new WaitForEndOfFrame();
+            yield return null;
         }
 
         action(1f);
@@ -28,6 +28,10 @@ public static class Coroutines
 
     public static IEnumerator Wait(float duration)
     {
-        yield return new WaitForSeconds(duration);
+        while (duration > 0)
+        {
+            duration -= Time.deltaTime;
+            yield return null;
+        }
     }
 }

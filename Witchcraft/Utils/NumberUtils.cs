@@ -1,19 +1,12 @@
+using System.Collections;
+
 namespace Witchcraft.Utils;
 
 public static class NumberUtils
 {
-    public static bool IsInRange(this float num, float min, float max, bool minInclusive = false, bool maxInclusive = false)
-    {
-        switch (minInclusive)
-        {
-            case true when maxInclusive:
-                return num >= min && num <= max;
-            case true:
-                return num >= min && num < max;
-        }
-
-        return num > min && (maxInclusive ? num <= max : num < max);
-    }
+    public static bool IsInRange(this float num, float min, float max, bool minInclusive = false, bool maxInclusive = false) =>
+        (minInclusive ? num >= min : num > min) &&
+        (maxInclusive ? num <= max : num < max);
 
     public static bool IsInRange(this int num, float min, float max, bool minInclusive = false, bool maxInclusive = false) => ((float)num).IsInRange(min, max, minInclusive, maxInclusive);
 
@@ -30,9 +23,9 @@ public static class NumberUtils
         currentVal += value;
 
         if (currentVal > max)
-            currentVal = min;
+            return min;
         else if (currentVal < min)
-            currentVal = max;
+            return max;
 
         return currentVal;
     }
@@ -41,9 +34,9 @@ public static class NumberUtils
 
     public static byte CycleByte(int max, int min, int currentVal, bool increment, int change = 1) => (byte)CycleInt(max, min, currentVal, increment, change);
 
-    public static bool[] ToBits(this byte @byte)
+    public static BitArray ToBits(this byte @byte)
     {
-        var result = new bool[8];
+        var result = new BitArray(8);
 
         for (var i = 0; i < 8; i++)
             result[i] = @byte.ToBit(i);
@@ -53,7 +46,7 @@ public static class NumberUtils
 
     public static bool ToBit(this byte @byte, int index) => (@byte & (1 << index)) != 0;
 
-    public static byte ToByte(this bool[] bits)
+    public static byte ToByte(this BitArray bits)
     {
         byte result = 0;
 

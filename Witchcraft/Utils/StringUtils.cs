@@ -7,9 +7,9 @@ public static class StringUtils
     public static readonly char[] Lowercase = [ 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z' ];
     public static readonly char[] Uppercase = [ 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z' ];
 
-    public static string GetRandomisedString(int maxLength) => ASCII.AsEnumerable().GetRandomRange(URandom.RandomRangeInt(1, maxLength + 1)).ConstructString();
+    public static string GetRandomisedString(int maxLength) => ASCII.GetRandomRange(URandom.RandomRangeInt(1, maxLength + 1)).ConstructString();
 
-    public static string ConstructString(this IEnumerable<char> chars) => new(chars.ToArray());
+    public static string ConstructString(this IEnumerable<char> chars) => new([.. chars]);
 
     public static string WrapText(string text, int width = 90, bool overflow = true)
     {
@@ -82,7 +82,7 @@ public static class StringUtils
             return string.Empty;
 
         var result = WrapText(texts.FirstOrDefault(), width, overflow);
-        texts.Skip(1).ForEach(x => result += $"\n{WrapText(x, width, overflow)}");
+        texts.Skip(1).Do(x => result += $"\n{WrapText(x, width, overflow)}");
         return result;
     }
 
@@ -99,11 +99,9 @@ public static class StringUtils
         return str;
     }
 
-    public static bool IsNullEmptyOrWhiteSpace(string? text) => text is null or "" || text.All(x => x == ' ') || text.Length == 0 || string.IsNullOrWhiteSpace(text);
-
     public static string AddSpaces(this string text)
     {
-        Uppercase.ForEach(x =>
+        Uppercase.Do(x =>
         {
             var index = text.IndexOf(x);
 
@@ -113,28 +111,4 @@ public static class StringUtils
 
         return text;
     }
-
-    public static string SanitisePath(this string path)
-    {
-        path = path.Split('/')[^1];
-        path = path.Split('\\')[^1];
-        path = path.Replace("_mac", string.Empty); // For asset bundles
-        path = path.Replace(".txt", string.Empty);
-        path = path.Replace(".log", string.Empty);
-        path = path.Replace(".mp3", string.Empty);
-        path = path.Replace(".raw", string.Empty);
-        path = path.Replace(".png", string.Empty);
-        path = path.Replace(".jpg", string.Empty);
-        path = path.Replace(".gif", string.Empty);
-        path = path.Replace(".xml", string.Empty);
-        path = path.Replace(".ogg", string.Empty);
-        path = path.Replace(".wav", string.Empty);
-        path = path.Replace(".json", string.Empty);
-        path = path.Split('.')[^1];
-        return path;
-    }
-
-    public static bool EndsWithAny(this string name, params string[] endings) => endings.Any(name.EndsWith);
-
-    public static bool ContainsAny(this string path, params string[] parts) => parts.Any(path.Contains);
 }
