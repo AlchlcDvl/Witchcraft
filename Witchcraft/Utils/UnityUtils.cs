@@ -36,6 +36,22 @@ public static class UnityUtils
         return null!;
     }
 
+    public static IEnumerable<Transform> FindAllRecursive(this Transform self, string exactName) => self.FindAllRecursive(child => child.name == exactName);
+
+    public static IEnumerable<Transform> FindAllRecursive(this Transform self, Func<Transform, bool> selector)
+    {
+        for (var i = 0; i < self.childCount; i++)
+        {
+            var child = self.GetChild(i);
+
+            if (selector(child))
+                yield return child;
+
+            foreach (var found in child.FindAllRecursive(selector))
+                yield return found;
+        }
+    }
+
     public static IEnumerable<T> GetAllComponents<T>(this Transform self) where T : Component
     {
         if (self.TryGetComponent<T>(out var comp))
