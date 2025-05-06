@@ -19,7 +19,7 @@ public class CustomImageAnimator : CustomAnimator
 
     public void Update()
     {
-        if (!Renderer)
+        if (!Renderer || IsStatic)
             return;
 
         FrameTime += Time.deltaTime;

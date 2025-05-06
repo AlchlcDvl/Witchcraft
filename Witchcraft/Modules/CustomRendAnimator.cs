@@ -17,7 +17,7 @@ public class CustomRendAnimator : CustomAnimator
 
     public void Update()
     {
-        if (!Renderer)
+        if (!Renderer || IsStatic)
             return;
 
         FrameTime += Time.deltaTime;

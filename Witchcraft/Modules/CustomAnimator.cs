@@ -7,6 +7,8 @@ public abstract class CustomAnimator : MonoBehaviour
     public float FrameDuration { get; set; }
     public float FrameTime { get; set; }
 
+    public bool IsStatic => Anim is { Count: 1 };
+
     public virtual void SetAnim(List<Sprite>? anim, float duration)
     {
         Anim = anim;
