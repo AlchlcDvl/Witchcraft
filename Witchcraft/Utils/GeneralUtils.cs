@@ -1,5 +1,6 @@
 using System.Collections;
-using System.Diagnostics;
+using System.Linq.Expressions;
+using System.Runtime.CompilerServices;
 
 namespace Witchcraft.Utils;
 
@@ -47,6 +48,30 @@ public static class GeneralUtils
         if (tType.GetCustomAttribute<FlagsAttribute>() == null)
             throw new ArgumentException($"{tType.Name} is not a flag enum");
 
-        return flags.Any(x => value.HasFlag(x));
+        return flags.Any(x => value.HasFlagFast(x));
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool HasFlagFast<T>(this T value, T flag) where T : struct, Enum => EnumFlagCache<T>.HasFlagDelegate(value, flag);
+
+    private static class EnumFlagCache<T> where T : struct, Enum
+    {
+        public static readonly Func<T, T, bool> HasFlagDelegate = CreateDelegate();
+
+        private static Func<T, T, bool> CreateDelegate()
+        {
+            var valueParam = Expression.Parameter(typeof(T), "value");
+            var flagParam = Expression.Parameter(typeof(T), "flag");
+
+            var underlyingType = Enum.GetUnderlyingType(typeof(T));
+
+            var valueCast = Expression.Convert(valueParam, underlyingType); // (number)value
+            var flagCast = Expression.Convert(flagParam, underlyingType); // (number)flag
+
+            var andOp = Expression.And(valueCast, flagCast); // and = value & flag
+            var bitCheck = Expression.Equal(andOp, flagCast); // bit = and == flag
+
+            return Expression.Lambda<Func<T, T, bool>>(bitCheck, valueParam, flagParam).Compile();
+        }
     }
 }

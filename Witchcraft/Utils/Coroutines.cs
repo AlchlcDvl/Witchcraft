@@ -11,6 +11,8 @@ public static class Coroutines
         return coroutine;
     }
 
+    public static Coroutine Start(IEnumerator coroutine) => ApplicationController.ApplicationContext.StartCoroutine(coroutine);
+
     public static void Stop(IEnumerator coroutine) => ApplicationController.ApplicationContext.StopCoroutine(coroutine);
 
     public static void PerformTimedAction(float duration, Action<float> action) => Start(CoPerformTimedAction(duration, action));

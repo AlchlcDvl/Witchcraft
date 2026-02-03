@@ -68,7 +68,7 @@ public static class EnumerableUtils
             temp = [];
         }
 
-        if (temp.Any())
+        if (temp.Count > 0)
             yield return temp;
     }
 
